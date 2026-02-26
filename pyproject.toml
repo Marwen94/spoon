@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "gen-seo-metric"
+version = "1.0.0"
+description = "LangGraph AI Agent — Perplexity Brand Exposure Evaluator"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.30.0"}
+pydantic = "^2.0"
+pydantic-settings = "^2.0"
+langchain = "^0.3.0"
+langchain-openai = "^0.3.0"
+langchain-community = "^0.3.0"
+langgraph = "^0.2.0"
+httpx = "^0.27.0"
+beautifulsoup4 = "^4.12.0"
+firecrawl-py = "^1.0.0"
+python-dotenv = "^1.0.0"
+perplexityai = "^0.30.0"
+langsmith = "^0.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+pytest-asyncio = "^0.24.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
