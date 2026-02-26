@@ -2,7 +2,7 @@
 
 ![Spoon Demo](assets/spoon.gif)
 
-A **LangGraph multi-agent workflow** that evaluates how well a product or brand is exposed on [Perplexity AI](https://www.perplexity.ai/).  
+A multi-agent workflow that evaluates how well a product or brand is exposed on [Perplexity AI](https://www.perplexity.ai/).  
 Given a domain name, the system automatically:
 
 1. **Researches** the brand (web search + homepage scraping → LLM extraction)
