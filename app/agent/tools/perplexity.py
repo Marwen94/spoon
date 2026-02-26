@@ -11,15 +11,6 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-INSTRUCTIONS = (
-    "You are a helpful assistant. Answer the user's question thoroughly "
-    "and include relevant tools, products, or services where appropriate. "
-    "You have access to a web_search tool. Use it for questions about "
-    "current events, products, or recent developments. "
-    "NEVER ask permission to search - just search when appropriate."
-)
-
-
 def _get_client() -> Perplexity:
     """Build a Perplexity client.
 
@@ -59,11 +50,18 @@ def query_perplexity(prompt: str) -> dict[str, Any]:
     # This automatically includes web search and optimized reasoning
     response = client.responses.create(
         preset="pro-search",
-        input=prompt,
+        messages=[{"role": "user", "content": prompt}],
     )
 
     # Use the convenience property output_text as recommended in documentation
-    completion_text = response.output_text or ""
+    completion_text = ""
+    choices = getattr(response, "choices", [])
+    if choices:
+        choice = choices[0]
+        if hasattr(choice, "message"):
+            completion_text = choice.message.content or ""
+        elif isinstance(choice, dict):
+            completion_text = choice.get("message", {}).get("content", "")
 
     # Extract citations using the helper
     citations = _extract_citations(response)
@@ -72,7 +70,6 @@ def query_perplexity(prompt: str) -> dict[str, Any]:
     raw: dict[str, Any] = {
         "id": response.id,
         "model": getattr(response, "model", "pro-search"),
-        "status": response.status,
         "choices": [
             {"message": {"content": completion_text}}
         ],

@@ -41,7 +41,9 @@ def _run_single_prompt(
         completion = ""
         choices = raw.get("choices", [])
         if choices:
-            completion = choices[0].get("message", {}).get("content", "")
+            choice = choices[0]
+            if isinstance(choice, dict):
+                completion = choice.get("message", {}).get("content", "")
 
         # Extract citations
         citations: list[str] = raw.get("citations", [])
