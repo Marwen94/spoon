@@ -91,6 +91,20 @@ graph TD
 
 ---
 
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|:--------:|
+| `OPENAI_API_KEY` | OpenAI API Key for GPT-4o. | ✅ |
+| `FIRECRAWL_API_KEY` | Firecrawl API Key for web search & scraping. | ✅ |
+| `PERPLEXITY_API_KEY` | Perplexity API Key for running queries. | ✅ |
+| `LLM_MODEL` | LLM model name (default: `gpt-4o`). | ❌ |
+| `LOG_LEVEL` | Logging level (default: `INFO`). | ❌ |
+| `PERPLEXITY_MAX_WORKERS` | Max concurrent requests to Perplexity (default: `5`). | ❌ |
+| `WORKFLOW_TIMEOUT` | Max execution time in seconds (default: `300`). | ❌ |
+
+---
+
 ## API Endpoints
 
 - `POST /api/v1/evaluate`: Run the full evaluation workflow.
