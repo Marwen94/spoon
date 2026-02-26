@@ -40,7 +40,7 @@ def prompt_generator(state: AgentState) -> dict[str, Any]:
     """Generate Perplexity-style prompts from the brand context."""
     brand_context = state["brand_context"]
     domain = state["domain"]
-    count = settings.PROMPTS_COUNT
+    count = state.get("prompts_count", settings.PROMPTS_COUNT)
     logger.info("[prompt_generator] START | domain=%s | count=%d", domain, count)
 
     try:

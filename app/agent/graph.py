@@ -76,7 +76,7 @@ compiled_graph = build_graph()
 
 # ── Public interface ────────────────────────────────────────────────────────
 
-async def run_graph(domain: str) -> dict[str, Any]:
+async def run_graph(domain: str, prompts_count: int = 5) -> dict[str, Any]:
     """Run the full evaluation workflow for *domain*.
 
     The graph nodes are synchronous, so we run the compiled graph
@@ -84,6 +84,7 @@ async def run_graph(domain: str) -> dict[str, Any]:
     """
     initial_state: AgentState = {
         "domain": domain,
+        "prompts_count": prompts_count,
         "brand_name": "",
         "brand_context": {},
         "generated_prompts": [],

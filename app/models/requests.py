@@ -8,6 +8,14 @@ class EvaluateRequest(BaseModel):
     """Request body for the /evaluate endpoint."""
 
     domain: str
+    prompts_count: int = 5
+
+    @field_validator("prompts_count")
+    @classmethod
+    def validate_count(cls, v: int) -> int:
+        if not (1 <= v <= 20):
+            raise ValueError("Prompts count must be between 1 and 20")
+        return v
 
     @field_validator("domain")
     @classmethod

@@ -24,6 +24,7 @@ class AgentState(TypedDict):
     domain: str
     brand_name: str
     brand_context: dict  # researched brand info
+    prompts_count: int  # number of prompts to generate
     generated_prompts: list[str]
     perplexity_results: list[PerplexityResult]
     report: dict  # final computed report

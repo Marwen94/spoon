@@ -31,7 +31,7 @@ async def evaluate(body: EvaluateRequest) -> ExposureReport:
     logger.info("POST /evaluate | domain=%s", body.domain)
 
     try:
-        state = await run_graph(body.domain)
+        state = await run_graph(body.domain, body.prompts_count)
     except TimeoutError:
         raise HTTPException(status_code=504, detail="Workflow timed out")
     except Exception as exc:
