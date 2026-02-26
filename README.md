@@ -99,6 +99,20 @@ graph TD
 
 ---
 
+## Docker
+
+1. **Build the image**:
+   ```bash
+   docker build -t spoon .
+   ```
+
+2. **Run the container**:
+   ```bash
+   docker run -p 8000:8000 --env-file .env spoon
+   ```
+
+---
+
 ## Testing
 
 Run backend tests with:
