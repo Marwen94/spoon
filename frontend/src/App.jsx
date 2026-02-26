@@ -48,7 +48,7 @@ function App() {
             type="text"
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
-            placeholder="Enter domain name (e.g., example.com)"
+            placeholder="Domain name"
             disabled={loading}
             className="domain-input"
           />
@@ -71,7 +71,7 @@ function App() {
         </div>
 
         <button type="submit" disabled={loading || !domain} className="submit-btn">
-          {loading ? 'Analyzing...' : 'Analyze Brand'}
+          {loading ? 'Analyzing...' : 'Analyze'}
         </button>
       </form>
 
