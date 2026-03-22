@@ -19,6 +19,12 @@ class DomainCreateRequest(BaseModel):
             raise ValueError(f"Invalid domain: {v}")
         return v
 
+from typing import Any
+
+class DomainUpdateRequest(BaseModel):
+    """Request body to update a domain's brand identity."""
+    brand_identity: dict[str, Any]
+
 class EvaluateRequest(BaseModel):
     """Request body for the /evaluate endpoint."""
 

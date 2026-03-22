@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 
 from app.agent.graph import run_graph
-from app.models.requests import EvaluateRequest, DomainCreateRequest
+from app.models.requests import EvaluateRequest, DomainCreateRequest, DomainUpdateRequest
 from app.models.responses import (
     ErrorResponse, ExposureReport, HealthResponse, 
     DomainListResponse, DomainResponse, DomainReportsResponse, ReportHistoryResponse
@@ -31,18 +31,27 @@ async def list_domains() -> DomainListResponse:
     domains = await db_service.get_all_domains()
     return DomainListResponse(
         domains=[
-            DomainResponse(id=d.id, name=d.name, created_at=d.createdAt)
+            DomainResponse(
+                id=d.id, 
+                name=d.name, 
+                created_at=d.createdAt,
+                brand_identity=d.brandIdentity
+            )
             for d in domains
         ]
     )
-
 
 @router.post("/domains", response_model=DomainResponse)
 async def create_domain(body: DomainCreateRequest) -> DomainResponse:
     """Register a new domain."""
     try:
         domain = await db_service.ensure_domain_exists(body.domain)
-        return DomainResponse(id=domain.id, name=domain.name, created_at=domain.createdAt)
+        return DomainResponse(
+            id=domain.id, 
+            name=domain.name, 
+            created_at=domain.createdAt,
+            brand_identity=domain.brandIdentity
+        )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -64,6 +73,7 @@ async def list_domain_reports(domain_name: str) -> DomainReportsResponse:
                 pr_dict = {
                     "prompt": pr.prompt,
                     "sources": pr.citations,
+                    "competitors_mentioned": getattr(pr, "competitorsMentioned", []) or []
                 }
                 
                 if pr.brandMentioned:
@@ -98,6 +108,15 @@ async def delete_domain(domain_name: str):
         if not success:
             raise HTTPException(status_code=404, detail="Domain not found")
         return {"status": "success", "message": f"Domain {domain_name} deleted"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+@router.put("/domains/{domain_name}/brand-identity")
+async def update_domain_brand_identity(domain_name: str, body: DomainUpdateRequest):
+    """Update the brand identity for a domain."""
+    try:
+        await db_service.update_brand_identity(domain_name, body.brand_identity)
+        return {"status": "success"}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

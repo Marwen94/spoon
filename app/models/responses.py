@@ -4,10 +4,13 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+from typing import Any
+
 class DomainResponse(BaseModel):
     id: int
     name: str
     created_at: datetime
+    brand_identity: dict[str, Any] | None = None
 
 class DomainListResponse(BaseModel):
     domains: list[DomainResponse]
@@ -19,6 +22,7 @@ class PromptResult(BaseModel):
     mention_context: str | None = None
     sources: list[str] = []
     completion_summary: str | None = None
+    competitors_mentioned: list[str] = []
 
 class ReportHistoryResponse(BaseModel):
     id: int

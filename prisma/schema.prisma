@@ -39,15 +39,16 @@ model Report {
 }
 
 model PromptResponse {
-  id             Int      @id @default(autoincrement())
-  reportId       Int      @map("report_id")
-  report         Report   @relation(fields: [reportId], references: [id])
-  prompt         String
-  completion     String
-  brandMentioned Boolean  @map("brand_mentioned")
-  citations      String[] // List of citation URLs
-  mentionContext String   @map("mention_context")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id                   Int      @id @default(autoincrement())
+  reportId             Int      @map("report_id")
+  report               Report   @relation(fields: [reportId], references: [id])
+  prompt               String
+  completion           String
+  brandMentioned       Boolean  @map("brand_mentioned")
+  competitorsMentioned String[] @map("competitors_mentioned") // List of competitors found in completion
+  citations            String[] // List of citation URLs
+  mentionContext       String   @map("mention_context")
+  createdAt            DateTime @default(now()) @map("created_at")
 
   @@map("prompt_responses")
 }

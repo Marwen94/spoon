@@ -59,3 +59,16 @@ REPORT_SUMMARY_USER_TEMPLATE = (
     "The brand did NOT appear in:\n"
     "{not_appeared_list}"
 )
+
+# ── Competitor Extraction Prompts ───────────────────────────────────────────
+COMPETITOR_EXTRACTION_SYSTEM = (
+    "You are an expert market analyst. Your task is to extract a list of "
+    "companies, brands, or products mentioned in the provided text that could "
+    "be considered competitors or alternatives in the market. "
+    "Return ONLY a JSON array of strings containing the names of these entities. "
+    "If none are found, return an empty array []."
+)
+
+COMPETITOR_EXTRACTION_USER_TEMPLATE = (
+    "Text to analyze:\n\n{text}"
+)

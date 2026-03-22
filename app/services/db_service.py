@@ -12,12 +12,12 @@ class DBService:
     """Service to interact with the database using Prisma."""
 
     def __init__(self) -> None:
-        self.client = Prisma()
         self._connected = False
 
     async def connect(self) -> None:
         """Connect to the database."""
         if not self._connected:
+            self.client = Prisma()
             await self.client.connect()
             self._connected = True
             logger.info("Prisma client connected")
@@ -189,6 +189,7 @@ class DBService:
                         "brandMentioned": r.brand_mentioned,
                         "citations": r.citations,
                         "mentionContext": r.brand_mention_context,
+                        "competitorsMentioned": getattr(r, "competitors_mentioned", []),
                     })
             else:
                 # Fallback to report dict if raw results not provided
@@ -203,6 +204,7 @@ class DBService:
                         "brandMentioned": True,
                         "citations": item.get("sources", []),
                         "mentionContext": item.get("mention_context", ""),
+                        "competitorsMentioned": item.get("competitors_mentioned", []),
                     })
 
                 for item in not_appeared:
@@ -213,6 +215,7 @@ class DBService:
                         "brandMentioned": False,
                         "citations": item.get("sources", []),
                         "mentionContext": "",
+                        "competitorsMentioned": item.get("competitors_mentioned", []),
                     })
             
             # Batch create prompt responses
