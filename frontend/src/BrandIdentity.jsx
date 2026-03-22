@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 
 const BrandIdentity = ({
   selectedDomain,
@@ -10,10 +11,21 @@ const BrandIdentity = ({
   handleArrayIdentityChange,
   handleSaveIdentity,
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <div className="brand-identity-section fade-in">
       <div className="identity-header">
-        <h2>Brand Identity</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2>Brand Identity</h2>
+          <button 
+            className="small-btn" 
+            style={{ padding: '2px 6px', fontSize: '0.8rem', background: 'transparent', color: '#868e96', border: '1px solid #ced4da' }}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            {isCollapsed ? 'Show' : 'Hide'}
+          </button>
+        </div>
         {!isEditingIdentity ? (
           <button className="small-btn" onClick={() => setIsEditingIdentity(true)}>
             {selectedDomain.brand_identity && Object.keys(selectedDomain.brand_identity).length > 0 ? 'Edit' : 'Create Identity'}
@@ -45,10 +57,13 @@ const BrandIdentity = ({
           </div>
         )}
       </div>
-      {isEditingIdentity ? (
-        <div className="identity-form">
-          <div className="form-group">
-            <label>Brand Name</label>
+      
+      {!isCollapsed && (
+        <>
+          {isEditingIdentity ? (
+            <div className="identity-form">
+              <div className="form-group">
+                <label>Brand Name</label>
             <input 
               type="text" 
               value={editedIdentityObj?.brand_name || ''} 
@@ -140,6 +155,8 @@ const BrandIdentity = ({
         <div className="identity-viewer friendly" style={{ color: '#868e96', fontStyle: 'italic' }}>
           No brand identity configured yet. Click &apos;Create Identity&apos; to add one.
         </div>
+      )}
+      </>
       )}
     </div>
   );

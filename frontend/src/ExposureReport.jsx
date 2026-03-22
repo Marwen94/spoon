@@ -1,5 +1,6 @@
 import GraphVisualization from './GraphVisualization';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 
 const ExposureReport = ({
   report,
@@ -13,14 +14,27 @@ const ExposureReport = ({
   handleAddSourceToContext,
   handleAddCompetitorToContext,
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   if (!report) return null;
 
   return (
     <div className="report fade-in">
       <div className="report-header-actions">
         <div className="header-left">
-          <h2>Exposure Report</h2>
-          <div className="view-toggle">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2>Exposure Report</h2>
+            <button 
+              className="small-btn" 
+              style={{ padding: '2px 6px', fontSize: '0.8rem', background: 'transparent', color: '#868e96', border: '1px solid #ced4da' }}
+              onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+              {isCollapsed ? 'Show' : 'Hide'}
+            </button>
+          </div>
+          {!isCollapsed && (
+            <>
+              <div className="view-toggle">
             <button 
               className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
@@ -45,23 +59,27 @@ const ExposureReport = ({
               <option value="missed">Missed</option>
             </select>
           </div>
+            </>
+          )}
         </div>
-        {!report.is_aggregated && history.length > 0 && (
-          <button onClick={handleBackToHistory} className="back-btn">
-            ← Back to Reports
-          </button>
-        )}
-      </div>
-
-      {viewMode === 'graph' ? (
-        <div className="graph-container">
-          <GraphVisualization 
-            report={filteredReport} 
-            onAddSource={handleAddSourceToContext}
-            onAddCompetitor={handleAddCompetitorToContext}
-          />
+          {!isCollapsed && !report.is_aggregated && history.length > 0 && (
+            <button onClick={handleBackToHistory} className="back-btn">
+              ← Back to Reports
+            </button>
+          )}
         </div>
-      ) : (
+        
+        {!isCollapsed && (
+          <>
+            {viewMode === 'graph' ? (
+              <div className="graph-container">
+                <GraphVisualization 
+                  report={filteredReport} 
+                  onAddSource={handleAddSourceToContext}
+                  onAddCompetitor={handleAddCompetitorToContext}
+                />
+              </div>
+            ) : (
         <>
           <div className="summary-card">
             <div className="score">
@@ -207,6 +225,8 @@ const ExposureReport = ({
           )}
         </>
       )}
+          </>
+        )}
     </div>
   );
 };

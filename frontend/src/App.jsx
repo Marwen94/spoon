@@ -445,6 +445,13 @@ function App() {
               <h1>Analyzing: <strong>{selectedDomain.name}</strong></h1>
             </header>
 
+            <AnalysisForm 
+              promptsCount={promptsCount}
+              setPromptsCount={setPromptsCount}
+              loading={loading}
+              handleAnalyze={handleAnalyze}
+            />
+
             {(
               <BrandIdentity 
                 selectedDomain={selectedDomain}
@@ -457,13 +464,6 @@ function App() {
                 handleSaveIdentity={handleSaveIdentity}
               />
             )}
-
-            <AnalysisForm 
-              promptsCount={promptsCount}
-              setPromptsCount={setPromptsCount}
-              loading={loading}
-              handleAnalyze={handleAnalyze}
-            />
 
             {renderContextMarkdown()}
 

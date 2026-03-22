@@ -21,6 +21,8 @@ PROMPT_GENERATOR_SYSTEM = (
     "RULES:\n"
     "- Prompts must NOT mention the brand by name.\n"
     "- They should be generic queries in the brand's domain/market.\n"
+    "- If the context provides 'competitors', generate some prompts asking for alternatives or comparisons to them.\n"
+    "- If the context provides 'sources' (e.g. URLs, forums, specific sites), generate some prompts looking for recommendations or discussions from those specific sources (e.g., 'What do users on [source] recommend for...').\n"
     "- Cover a variety of intents:\n"
     "  • Comparison queries (\"What is the best X for Y use case?\")\n"
     "  • Problem-solving queries (\"How do I solve X problem?\")\n"
