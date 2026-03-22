@@ -19,9 +19,9 @@ from app.agent.tools.web_search import search_brand
 from app.agent.prompts import BRAND_RESEARCHER_SYSTEM, BRAND_RESEARCHER_USER_TEMPLATE
 from app.config import settings
 from app.services.db_service import db_service
+from app.utils import is_safe_domain
 
 logger = logging.getLogger(__name__)
-
 
 # ── Structured output schema ────────────────────────────────────────────────
 class BrandInfo(BaseModel):
@@ -52,6 +52,10 @@ class BrandInfo(BaseModel):
 # ── Helper: scrape homepage ─────────────────────────────────────────────────
 async def _scrape_homepage(domain: str) -> str:
     """Fetch the homepage HTML and return visible text (best-effort)."""
+    if not is_safe_domain(domain):
+        logger.warning("Unsafe domain detected (SSRF prevention): %s", domain)
+        return ""
+        
     url = f"https://{domain}"
     try:
         async with httpx.AsyncClient(
@@ -82,7 +86,7 @@ async def brand_researcher(state: AgentState) -> dict[str, Any]:
 
     try:
         # 0. Ensure domain exists in DB
-        domain_record = await db_service.ensure_domain_exists(domain)
+        await db_service.ensure_domain_exists(domain)
         existing_domain = await db_service.get_domain_by_name(domain)
 
         # Check if we already have a complete brand identity

@@ -120,7 +120,7 @@ const ExposureReport = ({
                         <ul>
                           {ex.sources.map((source, j) => (
                             <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <a href={source} target="_blank" rel="noopener noreferrer">
+                              <a href={source.startsWith('http') ? source : `https://${source}`} target="_blank" rel="noopener noreferrer">
                                 {source}
                               </a>
                               <button 
@@ -182,7 +182,7 @@ const ExposureReport = ({
                         <ul>
                           {ex.sources.map((source, j) => (
                             <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <a href={source} target="_blank" rel="noopener noreferrer">
+                              <a href={source.startsWith('http') ? source : `https://${source}`} target="_blank" rel="noopener noreferrer">
                                 {source}
                               </a>
                               <button 

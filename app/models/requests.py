@@ -27,6 +27,13 @@ class ContextAddSourceRequest(BaseModel):
     """Request body to add a source to domain context."""
     url: str
 
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v: str) -> str:
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        return v
+
 class ContextAddCompetitorRequest(BaseModel):
     """Request body to add a competitor to domain context."""
     name: str
