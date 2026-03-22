@@ -504,8 +504,52 @@
 }
 
 .chips-container.small .chip {
-  padding: 0.2rem 0.5rem;
+  padding: 0.15rem 0.5rem;
   font-size: 0.75rem;
+}
+
+/* Context Markdown Block */
+.context-markdown {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.markdown-block {
+  position: relative;
+}
+
+.markdown-block pre {
+  margin: 0;
+  padding: 1.5rem;
+  background: #212529;
+  color: #f8f9fa;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.markdown-block code {
+  white-space: pre-wrap;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 .competitors-mentioned {

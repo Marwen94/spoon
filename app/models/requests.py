@@ -25,6 +25,14 @@ class DomainUpdateRequest(BaseModel):
     """Request body to update a domain's brand identity."""
     brand_identity: dict[str, Any]
 
+class ContextAddSourceRequest(BaseModel):
+    """Request body to add a source to domain context."""
+    url: str
+
+class ContextAddCompetitorRequest(BaseModel):
+    """Request body to add a competitor to domain context."""
+    name: str
+
 class EvaluateRequest(BaseModel):
     """Request body for the /evaluate endpoint."""
 

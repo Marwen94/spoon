@@ -34,12 +34,82 @@ class DBService:
         try:
             await self.connect()
             domains = await self.client.domain.find_many(
+                include={
+                    "context": {
+                        "include": {
+                            "sources": True,
+                            "competitors": True
+                        }
+                    }
+                },
                 order={"createdAt": "desc"}
             )
             return domains
         except Exception as e:
             logger.error(f"Failed to fetch domains: {e}")
             return []
+
+    async def get_domain_by_name(self, domain_name: str) -> Any:
+        """Get a domain by name."""
+        try:
+            await self.connect()
+            return await self.client.domain.find_unique(
+                where={"name": domain_name},
+                include={
+                    "context": {
+                        "include": {
+                            "sources": True,
+                            "competitors": True
+                        }
+                    }
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to get domain {domain_name}: {e}")
+            return None
+
+    async def add_source_to_context(self, domain_name: str, url: str) -> Any:
+        """Add a source URL to the domain's context."""
+        await self.connect()
+        domain = await self.client.domain.find_unique(where={"name": domain_name})
+        if not domain:
+            raise ValueError(f"Domain {domain_name} not found")
+            
+        context = await self.client.context.find_unique(where={"domainId": domain.id})
+        if not context:
+            context = await self.client.context.create(data={"domainId": domain.id})
+            
+        # Optional: check if already exists to avoid dupes in context
+        existing = await self.client.source.find_first(
+            where={"contextId": context.id, "url": url}
+        )
+        if not existing:
+            existing = await self.client.source.create(
+                data={"url": url, "contextId": context.id}
+            )
+                
+        return existing
+
+    async def add_competitor_to_context(self, domain_name: str, name: str) -> Any:
+        """Add a competitor name to the domain's context."""
+        await self.connect()
+        domain = await self.client.domain.find_unique(where={"name": domain_name})
+        if not domain:
+            raise ValueError(f"Domain {domain_name} not found")
+            
+        context = await self.client.context.find_unique(where={"domainId": domain.id})
+        if not context:
+            context = await self.client.context.create(data={"domainId": domain.id})
+            
+        existing = await self.client.competitor.find_first(
+            where={"contextId": context.id, "name": name}
+        )
+        if not existing:
+            existing = await self.client.competitor.create(
+                data={"name": name, "contextId": context.id}
+            )
+                
+        return existing
 
     async def get_reports_for_domain(self, domain_name: str) -> list[Any]:
         """Get all reports for a specific domain."""

@@ -137,6 +137,25 @@ async def brand_researcher(state: AgentState) -> dict[str, Any]:
             "[brand_researcher] DONE | brand=%s", brand_context.get("brand_name")
         )
 
+        # Merge with existing context so we don't overwrite manually added competitors/sources
+        existing_domain = await db_service.get_domain_by_name(domain)
+        
+        # Now context is stored in the domain.context relation, let's grab them
+        if existing_domain and existing_domain.context:
+            context_comps = [c.name for c in getattr(existing_domain.context, "competitors", [])]
+            context_sources = [s.url for s in getattr(existing_domain.context, "sources", [])]
+            
+            # Append existing competitors from context that aren't in the new extraction
+            new_comps = brand_context.get("competitors", [])
+            for c in context_comps:
+                if c not in new_comps:
+                    new_comps.append(c)
+            brand_context["competitors"] = new_comps
+
+            # Pass sources along to brand_context so prompt generator can use them
+            if context_sources:
+                brand_context["sources"] = context_sources
+
         # Save brand identity to DB
         await db_service.update_brand_identity(domain, brand_context)
 

@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 
 from app.agent.graph import run_graph
-from app.models.requests import EvaluateRequest, DomainCreateRequest, DomainUpdateRequest
+from app.models.requests import EvaluateRequest, DomainCreateRequest, DomainUpdateRequest, ContextAddSourceRequest, ContextAddCompetitorRequest
 from app.models.responses import (
     ErrorResponse, ExposureReport, HealthResponse, 
     DomainListResponse, DomainResponse, DomainReportsResponse, ReportHistoryResponse
@@ -35,7 +35,12 @@ async def list_domains() -> DomainListResponse:
                 id=d.id, 
                 name=d.name, 
                 created_at=d.createdAt,
-                brand_identity=d.brandIdentity
+                brand_identity=d.brandIdentity,
+                context={
+                    "id": d.context.id,
+                    "sources": [s.url for s in getattr(d.context, "sources", [])] if getattr(d.context, "sources", None) else [],
+                    "competitors": [c.name for c in getattr(d.context, "competitors", [])] if getattr(d.context, "competitors", None) else []
+                } if d.context else None
             )
             for d in domains
         ]
@@ -46,11 +51,13 @@ async def create_domain(body: DomainCreateRequest) -> DomainResponse:
     """Register a new domain."""
     try:
         domain = await db_service.ensure_domain_exists(body.domain)
+        # Note: A newly created domain won't have a context yet, so we can omit it or set it to None.
         return DomainResponse(
             id=domain.id, 
             name=domain.name, 
             created_at=domain.createdAt,
-            brand_identity=domain.brandIdentity
+            brand_identity=domain.brandIdentity,
+            context=None
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -117,13 +124,36 @@ async def delete_domain(domain_name: str):
         raise HTTPException(status_code=500, detail=str(exc))
 
 @router.put("/domains/{domain_name}/brand-identity")
-async def update_domain_brand_identity(domain_name: str, body: DomainUpdateRequest):
+async def update_domain_brand_identity(domain_name: str, body: DomainUpdateRequest) -> dict:
     """Update the brand identity for a domain."""
+    domain = await db_service.update_brand_identity(domain_name, body.brand_identity)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    return {"status": "success", "domain": domain_name}
+
+@router.post("/domains/{domain_name}/context/sources")
+async def add_source_to_context(domain_name: str, body: ContextAddSourceRequest) -> dict:
+    """Add a source to the domain's context."""
     try:
-        await db_service.update_brand_identity(domain_name, body.brand_identity)
-        return {"status": "success"}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        source = await db_service.add_source_to_context(domain_name, body.url)
+        return {"status": "success", "source_id": source.id}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.exception(f"Failed to add source: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add source")
+
+@router.post("/domains/{domain_name}/context/competitors")
+async def add_competitor_to_context(domain_name: str, body: ContextAddCompetitorRequest) -> dict:
+    """Add a competitor to the domain's context."""
+    try:
+        competitor = await db_service.add_competitor_to_context(domain_name, body.name)
+        return {"status": "success", "competitor_id": competitor.id}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.exception(f"Failed to add competitor: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add competitor")
 
 
 @router.post(

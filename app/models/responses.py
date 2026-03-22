@@ -6,11 +6,17 @@ from pydantic import BaseModel
 
 from typing import Any
 
+class ContextResponse(BaseModel):
+    id: int
+    sources: list[str] = []
+    competitors: list[str] = []
+
 class DomainResponse(BaseModel):
     id: int
     name: str
     created_at: datetime
     brand_identity: dict[str, Any] | None = None
+    context: ContextResponse | None = None
 
 class DomainListResponse(BaseModel):
     domains: list[DomainResponse]

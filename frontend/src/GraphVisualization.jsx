@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 
-const GraphVisualization = ({ report }) => {
+const GraphVisualization = ({ report, onAddSource, onAddCompetitor }) => {
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [nodeFilter, setNodeFilter] = useState('both'); // 'both', 'sources', 'competitors'
   const containerRef = React.useRef(null);
@@ -156,6 +156,22 @@ const GraphVisualization = ({ report }) => {
           height={dimensions.height}
           graphData={graphData}
           nodeLabel="label"
+          onNodeClick={(node) => {
+            if (node.type === 'source' && onAddSource) {
+              if (window.confirm(`Add source "${node.label}" to domain context?`)) {
+                onAddSource(node.label);
+              }
+            } else if (node.type === 'competitor' && onAddCompetitor) {
+              if (window.confirm(`Add competitor "${node.label}" to domain context?`)) {
+                onAddCompetitor(node.label);
+              }
+            }
+          }}
+          onNodeHover={node => {
+            if (containerRef.current) {
+              containerRef.current.style.cursor = node && (node.type === 'source' || node.type === 'competitor') ? 'pointer' : 'default';
+            }
+          }}
           nodeColor={getNodeColor}
           nodeVal={getNodeSize}
           linkColor={(link) => link.color}
