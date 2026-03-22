@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 
 const AnalysisForm = ({
   promptsCount,
@@ -29,6 +29,13 @@ const AnalysisForm = ({
       </button>
     </form>
   );
+};
+
+AnalysisForm.propTypes = {
+  promptsCount: PropTypes.number.isRequired,
+  setPromptsCount: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  handleAnalyze: PropTypes.func.isRequired,
 };
 
 export default AnalysisForm;

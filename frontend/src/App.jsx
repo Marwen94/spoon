@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import GraphVisualization from './GraphVisualization';
 import Sidebar from './Sidebar';
 import BrandIdentity from './BrandIdentity';
 import AnalysisForm from './AnalysisForm';
 import ExposureReport from './ExposureReport';
+import { API_BASE_URL } from './config';
 import './App.css';
 
 function App() {
@@ -16,7 +16,6 @@ function App() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
   const [history, setHistory] = useState([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
   const [isEditingIdentity, setIsEditingIdentity] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'graph'
   const [mentionFilter, setMentionFilter] = useState('all'); // 'all', 'mentioned', 'missed'
@@ -31,7 +30,7 @@ function App() {
   const handleAddSourceToContext = async (url) => {
     if (!selectedDomain) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/domains/${selectedDomain.name}/context/sources`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/domains/${selectedDomain.name}/context/sources`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
@@ -57,7 +56,7 @@ function App() {
   const handleAddCompetitorToContext = async (name) => {
     if (!selectedDomain) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/domains/${selectedDomain.name}/context/competitors`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/domains/${selectedDomain.name}/context/competitors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name })
@@ -82,18 +81,34 @@ function App() {
 
   // Load domains on mount
   useEffect(() => {
-    fetchDomains();
-    const savedDomain = localStorage.getItem('selectedDomain');
-    if (savedDomain) {
-      const parsed = JSON.parse(savedDomain);
-      setSelectedDomain(parsed);
-      fetchDomainHistory(parsed.name);
-    }
+    const loadData = async () => {
+      await fetchDomains();
+      const savedDomain = localStorage.getItem('selectedDomain');
+      if (savedDomain) {
+        const parsed = JSON.parse(savedDomain);
+        setSelectedDomain(parsed);
+        // We can fetch history for the saved domain directly
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/v1/domains/${parsed.name}/reports`);
+          if (response.ok) {
+            const data = await response.json();
+            const reports = data.reports || [];
+            setHistory(reports);
+            if (reports.length > 0) {
+              aggregateReports(reports, parsed.name);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch history:", err);
+        }
+      }
+    };
+    loadData();
   }, []);
 
   const fetchDomains = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/domains');
+      const response = await fetch(`${API_BASE_URL}/api/v1/domains`);
       if (response.ok) {
         const data = await response.json();
         setDomains(data.domains || []);
@@ -110,7 +125,7 @@ function App() {
     if (!newDomain.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/domains', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/domains`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: newDomain }),
@@ -155,45 +170,26 @@ function App() {
         competitors: []
       });
     }
-    fetchDomainHistory(domain.name);
-  };
-
-  const handleSelectHistoryReport = (historyReport) => {
-    // Map history report format back to the main report format
-    setReport({
-      domain: selectedDomain.name,
-      exposure_rate: historyReport.exposure_rate,
-      total_prompts: historyReport.total_prompts,
-      brand_mentioned_count: historyReport.brand_mentioned_count,
-      brand_not_mentioned_count: historyReport.brand_not_mentioned_count,
-      summary: historyReport.summary,
-      appeared_examples: historyReport.appeared_examples || [],
-      not_appeared_examples: historyReport.not_appeared_examples || [],
-      generated_at: historyReport.created_at
-    });
-  };
-
-  const fetchDomainHistory = async (domainName) => {
-    setLoadingHistory(true);
-    try {
-      const response = await fetch(`http://localhost:8000/api/v1/domains/${domainName}/reports`);
-      if (response.ok) {
-        const data = await response.json();
-        const reports = data.reports || [];
-        setHistory(reports);
-        
-        // Aggregate all history reports into one master report view
-        if (reports.length > 0) {
-          aggregateReports(reports, domainName);
-        } else {
-          setReport(null);
+    
+    // We can fetch history for the saved domain directly
+    const loadHistory = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/domains/${domain.name}/reports`);
+        if (response.ok) {
+          const data = await response.json();
+          const reports = data.reports || [];
+          setHistory(reports);
+          if (reports.length > 0) {
+            aggregateReports(reports, domain.name);
+          } else {
+            setReport(null);
+          }
         }
+      } catch (err) {
+        console.error("Failed to fetch history:", err);
       }
-    } catch (err) {
-      console.error("Failed to fetch history:", err);
-    } finally {
-      setLoadingHistory(false);
-    }
+    };
+    loadHistory();
   };
 
   const aggregateReports = (reportsList, domainName) => {
@@ -250,15 +246,13 @@ function App() {
     setReport(null);
   };
 
-  const handleDeleteDomain = async (domainName, e) => {
-    e.stopPropagation(); // Prevent selecting the domain when clicking delete
-    
+  const handleDeleteDomain = async (domainName) => {
     if (!window.confirm(`Are you sure you want to delete ${domainName} and all its history?`)) {
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/domains/${domainName}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/domains/${domainName}`, {
         method: 'DELETE',
       });
 
@@ -289,7 +283,7 @@ function App() {
     setReport(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/evaluate', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/evaluate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -307,7 +301,23 @@ function App() {
 
       const data = await response.json();
       setReport(data);
-      fetchDomainHistory(selectedDomain.name);
+      
+      // Fetch domain history locally
+      try {
+        const histResponse = await fetch(`${API_BASE_URL}/api/v1/domains/${selectedDomain.name}/reports`);
+        if (histResponse.ok) {
+          const histData = await histResponse.json();
+          const reports = histData.reports || [];
+          setHistory(reports);
+          if (reports.length > 0) {
+            aggregateReports(reports, selectedDomain.name);
+          } else {
+            setReport(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch history:", err);
+      }
       
       // Also refresh domains to get potentially updated brand identity
       fetchDomains();
@@ -321,7 +331,7 @@ function App() {
   const handleSaveIdentity = async () => {
     if (!selectedDomain) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/domains/${selectedDomain.name}/brand-identity`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/domains/${selectedDomain.name}/brand-identity`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ brand_identity: editedIdentityObj })
@@ -386,7 +396,7 @@ function App() {
       sources.forEach(src => {
         try {
           md += `- [${new URL(src).hostname}](${src})\n`;
-        } catch (e) {
+        } catch {
           md += `- ${src}\n`;
         }
       });
@@ -435,7 +445,7 @@ function App() {
               <h1>Analyzing: <strong>{selectedDomain.name}</strong></h1>
             </header>
 
-            {!report && (
+            {(
               <BrandIdentity 
                 selectedDomain={selectedDomain}
                 isEditingIdentity={isEditingIdentity}

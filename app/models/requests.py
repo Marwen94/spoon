@@ -2,7 +2,7 @@
 
 import re
 from pydantic import BaseModel, field_validator
-
+from typing import Any
 
 class DomainCreateRequest(BaseModel):
     """Request body to register a new domain."""
@@ -18,8 +18,6 @@ class DomainCreateRequest(BaseModel):
         if not re.match(pattern, v):
             raise ValueError(f"Invalid domain: {v}")
         return v
-
-from typing import Any
 
 class DomainUpdateRequest(BaseModel):
     """Request body to update a domain's brand identity."""

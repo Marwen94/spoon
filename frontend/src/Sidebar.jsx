@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 
 const Sidebar = ({
   domains,
@@ -27,7 +27,10 @@ const Sidebar = ({
               <span className="domain-name">{d.name}</span>
               <button 
                 className="delete-domain-btn"
-                onClick={(e) => onDeleteDomain(d.name, e)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteDomain(d.name);
+                }}
                 title="Delete domain"
               >
                 ×
@@ -57,6 +60,16 @@ const Sidebar = ({
       </div>
     </aside>
   );
+};
+
+Sidebar.propTypes = {
+  domains: PropTypes.array.isRequired,
+  selectedDomain: PropTypes.object,
+  newDomain: PropTypes.string.isRequired,
+  setNewDomain: PropTypes.func.isRequired,
+  onSelectDomain: PropTypes.func.isRequired,
+  onAddDomain: PropTypes.func.isRequired,
+  onDeleteDomain: PropTypes.func.isRequired,
 };
 
 export default Sidebar;

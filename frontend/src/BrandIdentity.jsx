@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 
 const BrandIdentity = ({
   selectedDomain,
@@ -16,7 +16,7 @@ const BrandIdentity = ({
         <h2>Brand Identity</h2>
         {!isEditingIdentity ? (
           <button className="small-btn" onClick={() => setIsEditingIdentity(true)}>
-            {(selectedDomain.brand_identity && Object.keys(selectedDomain.brand_identity).length > 0) || (selectedDomain.context && (selectedDomain.context.competitors.length > 0 || selectedDomain.context.sources.length > 0)) ? 'Edit' : 'Create Identity'}
+            {selectedDomain.brand_identity && Object.keys(selectedDomain.brand_identity).length > 0 ? 'Edit' : 'Create Identity'}
           </button>
         ) : (
           <div className="identity-actions">
@@ -95,7 +95,7 @@ const BrandIdentity = ({
             />
           </div>
         </div>
-      ) : ((selectedDomain.brand_identity && Object.keys(selectedDomain.brand_identity).length > 0) || (selectedDomain.context && (selectedDomain.context.competitors.length > 0 || selectedDomain.context.sources.length > 0))) ? (
+      ) : selectedDomain.brand_identity && Object.keys(selectedDomain.brand_identity).length > 0 ? (
         <div className="identity-viewer friendly">
           {selectedDomain.brand_identity && selectedDomain.brand_identity.brand_name && (
             <div className="identity-field">
@@ -135,36 +135,25 @@ const BrandIdentity = ({
               </div>
             </div>
           )}
-          {selectedDomain.context && selectedDomain.context.competitors && Array.isArray(selectedDomain.context.competitors) && selectedDomain.context.competitors.length > 0 && (
-            <div className="identity-field">
-              <strong>Context Competitors:</strong>
-              <div className="chips-container">
-                {selectedDomain.context.competitors.map((comp, i) => (
-                  <span key={i} className="chip">{comp}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {selectedDomain.context && selectedDomain.context.sources && Array.isArray(selectedDomain.context.sources) && selectedDomain.context.sources.length > 0 && (
-            <div className="identity-field">
-              <strong>Context Sources:</strong>
-              <ul>
-                {selectedDomain.context.sources.map((source, i) => (
-                  <li key={i}>
-                    <a href={source} target="_blank" rel="noopener noreferrer">{source}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       ) : (
         <div className="identity-viewer friendly" style={{ color: '#868e96', fontStyle: 'italic' }}>
-          No brand identity configured yet. Click 'Create Identity' to add one.
+          No brand identity configured yet. Click &apos;Create Identity&apos; to add one.
         </div>
       )}
     </div>
   );
+};
+
+BrandIdentity.propTypes = {
+  selectedDomain: PropTypes.object.isRequired,
+  isEditingIdentity: PropTypes.bool.isRequired,
+  setIsEditingIdentity: PropTypes.func.isRequired,
+  editedIdentityObj: PropTypes.object.isRequired,
+  setEditedIdentityObj: PropTypes.func.isRequired,
+  handleIdentityChange: PropTypes.func.isRequired,
+  handleArrayIdentityChange: PropTypes.func.isRequired,
+  handleSaveIdentity: PropTypes.func.isRequired,
 };
 
 export default BrandIdentity;

@@ -1,5 +1,5 @@
-import React from 'react';
 import GraphVisualization from './GraphVisualization';
+import PropTypes from 'prop-types';
 
 const ExposureReport = ({
   report,
@@ -209,6 +209,19 @@ const ExposureReport = ({
       )}
     </div>
   );
+};
+
+ExposureReport.propTypes = {
+  report: PropTypes.object,
+  filteredReport: PropTypes.object,
+  viewMode: PropTypes.string.isRequired,
+  setViewMode: PropTypes.func.isRequired,
+  mentionFilter: PropTypes.string.isRequired,
+  setMentionFilter: PropTypes.func.isRequired,
+  history: PropTypes.array.isRequired,
+  handleBackToHistory: PropTypes.func.isRequired,
+  handleAddSourceToContext: PropTypes.func.isRequired,
+  handleAddCompetitorToContext: PropTypes.func.isRequired,
 };
 
 export default ExposureReport;
