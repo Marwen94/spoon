@@ -39,16 +39,37 @@ model Report {
 }
 
 model PromptResponse {
-  id                   Int      @id @default(autoincrement())
-  reportId             Int      @map("report_id")
-  report               Report   @relation(fields: [reportId], references: [id])
+  id                   Int          @id @default(autoincrement())
+  reportId             Int          @map("report_id")
+  report               Report       @relation(fields: [reportId], references: [id])
   prompt               String
   completion           String
-  brandMentioned       Boolean  @map("brand_mentioned")
-  competitorsMentioned String[] @map("competitors_mentioned") // List of competitors found in completion
-  citations            String[] // List of citation URLs
-  mentionContext       String   @map("mention_context")
-  createdAt            DateTime @default(now()) @map("created_at")
+  brandMentioned       Boolean      @map("brand_mentioned")
+  mentionContext       String       @map("mention_context")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  
+  sources              Source[]
+  competitors          Competitor[]
 
   @@map("prompt_responses")
+}
+
+model Source {
+  id               Int            @id @default(autoincrement())
+  promptResponseId Int            @map("prompt_response_id")
+  promptResponse   PromptResponse @relation(fields: [promptResponseId], references: [id], onDelete: Cascade)
+  url              String
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@map("sources")
+}
+
+model Competitor {
+  id               Int            @id @default(autoincrement())
+  promptResponseId Int            @map("prompt_response_id")
+  promptResponse   PromptResponse @relation(fields: [promptResponseId], references: [id], onDelete: Cascade)
+  name             String
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@map("competitors")
 }

@@ -52,7 +52,12 @@ class DBService:
                     }
                 },
                 include={
-                    "promptResponses": True
+                    "promptResponses": {
+                        "include": {
+                            "sources": True,
+                            "competitors": True
+                        }
+                    }
                 },
                 order={"createdAt": "desc"}
             )
@@ -177,18 +182,16 @@ class DBService:
             db_report = await self.client.report.create(data=report_data)
 
             # 3. Create PromptResponses linked to Report
-            prompt_responses_data = []
-
             # Use raw prompt_results if available for better fidelity
+            items_to_process = []
             if prompt_results:
                 for r in prompt_results:
-                    prompt_responses_data.append({
-                        "reportId": db_report.id,
+                    items_to_process.append({
                         "prompt": r.prompt,
                         "completion": r.completion or "",
                         "brandMentioned": r.brand_mentioned,
-                        "citations": r.citations,
                         "mentionContext": r.brand_mention_context,
+                        "citations": r.citations,
                         "competitorsMentioned": getattr(r, "competitors_mentioned", []),
                     })
             else:
@@ -197,30 +200,48 @@ class DBService:
                 not_appeared = report.get("not_appeared_examples", [])
 
                 for item in appeared:
-                    prompt_responses_data.append({
-                        "reportId": db_report.id,
+                    items_to_process.append({
                         "prompt": item.get("prompt", ""),
                         "completion": "", # Missing in this view
                         "brandMentioned": True,
-                        "citations": item.get("sources", []),
                         "mentionContext": item.get("mention_context", ""),
+                        "citations": item.get("sources", []),
                         "competitorsMentioned": item.get("competitors_mentioned", []),
                     })
 
                 for item in not_appeared:
-                    prompt_responses_data.append({
-                        "reportId": db_report.id,
+                    items_to_process.append({
                         "prompt": item.get("prompt", ""),
                         "completion": item.get("completion_summary", ""),
                         "brandMentioned": False,
-                        "citations": item.get("sources", []),
                         "mentionContext": "",
+                        "citations": item.get("sources", []),
                         "competitorsMentioned": item.get("competitors_mentioned", []),
                     })
             
-            # Batch create prompt responses
-            if prompt_responses_data:
-                await self.client.promptresponse.create_many(data=prompt_responses_data)
+            # Insert each prompt response and its nested relations
+            for item in items_to_process:
+                # Prepare nested creates for sources
+                sources_data = [{"url": url} for url in item["citations"]]
+                
+                # Prepare nested creates for competitors
+                competitors_data = [{"name": comp} for comp in item["competitorsMentioned"]]
+                
+                await self.client.promptresponse.create(
+                    data={
+                        "reportId": db_report.id,
+                        "prompt": item["prompt"],
+                        "completion": item["completion"],
+                        "brandMentioned": item["brandMentioned"],
+                        "mentionContext": item["mentionContext"],
+                        "sources": {
+                            "create": sources_data
+                        } if sources_data else None,
+                        "competitors": {
+                            "create": competitors_data
+                        } if competitors_data else None
+                    }
+                )
 
             logger.info(f"Analysis result persisted for domain: {domain} (Report ID: {db_report.id})")
 

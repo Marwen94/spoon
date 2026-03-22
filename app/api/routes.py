@@ -69,11 +69,16 @@ async def list_domain_reports(domain_name: str) -> DomainReportsResponse:
         prompt_responses = getattr(r, "promptResponses", [])
         if prompt_responses:
             for pr in prompt_responses:
+                # Extract sources and competitors from nested relations
+                sources = [s.url for s in getattr(pr, "sources", [])]
+                competitors = [c.name for s in getattr(pr, "competitors", []) for c in [s]] # slight hack to handle Prisma typing
+                competitors = [c.name for c in getattr(pr, "competitors", [])]
+
                 # Construct PromptResult matching the model
                 pr_dict = {
                     "prompt": pr.prompt,
-                    "sources": pr.citations,
-                    "competitors_mentioned": getattr(pr, "competitorsMentioned", []) or []
+                    "sources": sources,
+                    "competitors_mentioned": competitors
                 }
                 
                 if pr.brandMentioned:
