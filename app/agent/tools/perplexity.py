@@ -50,18 +50,21 @@ def query_perplexity(prompt: str) -> dict[str, Any]:
     # This automatically includes web search and optimized reasoning
     response = client.responses.create(
         preset="pro-search",
-        messages=[{"role": "user", "content": prompt}],
+        input=prompt,
     )
 
     # Use the convenience property output_text as recommended in documentation
-    completion_text = ""
-    choices = getattr(response, "choices", [])
-    if choices:
-        choice = choices[0]
-        if hasattr(choice, "message"):
-            completion_text = choice.message.content or ""
-        elif isinstance(choice, dict):
-            completion_text = choice.get("message", {}).get("content", "")
+    completion_text = getattr(response, "output_text", "") or ""
+    
+    # Fallback to choices if output_text is empty
+    if not completion_text:
+        choices = getattr(response, "choices", [])
+        if choices:
+            choice = choices[0]
+            if hasattr(choice, "message"):
+                completion_text = choice.message.content or ""
+            elif isinstance(choice, dict):
+                completion_text = choice.get("message", {}).get("content", "")
 
     # Extract citations using the helper
     citations = _extract_citations(response)

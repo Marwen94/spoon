@@ -12,12 +12,14 @@ from typing import Any
 from langchain_openai import ChatOpenAI
 
 from app.agent.state import AgentState
+from app.agent.prompts import REPORT_SUMMARY_SYSTEM, REPORT_SUMMARY_USER_TEMPLATE
 from app.config import settings
+from app.services.db_service import db_service
 
 logger = logging.getLogger(__name__)
 
 
-def report_generator(state: AgentState) -> dict[str, Any]:
+async def report_generator(state: AgentState) -> dict[str, Any]:
     """Compute metrics and build the final exposure report."""
     domain = state["domain"]
     brand_name = state["brand_name"]
@@ -48,19 +50,19 @@ def report_generator(state: AgentState) -> dict[str, Any]:
                     {
                         "prompt": r.prompt,
                         "sources": r.citations,
-                        "completion_summary": r.completion[:300] if r.completion else "",
+                        "completion_summary": r.completion if r.completion else "",
                     }
                 )
 
         # LLM-generated narrative summary
-        summary_input = (
-            f"Brand: {brand_name}\n"
-            f"Domain: {domain}\n"
-            f"Exposure rate: {exposure_rate:.1f}% ({mentioned_count}/{total} prompts)\n\n"
-            "The brand appeared in the following prompts:\n"
-            + "\n".join(f"- {e['prompt']}" for e in appeared_examples)
-            + "\n\nThe brand did NOT appear in:\n"
-            + "\n".join(f"- {e['prompt']}" for e in not_appeared_examples)
+        summary_input = REPORT_SUMMARY_USER_TEMPLATE.format(
+            brand_name=brand_name,
+            domain=domain,
+            exposure_rate=exposure_rate,
+            mentioned_count=mentioned_count,
+            total=total,
+            appeared_list="\n".join(f"- {e['prompt']}" for e in appeared_examples) if appeared_examples else "None",
+            not_appeared_list="\n".join(f"- {e['prompt']}" for e in not_appeared_examples) if not_appeared_examples else "None"
         )
 
         llm = ChatOpenAI(
@@ -73,11 +75,7 @@ def report_generator(state: AgentState) -> dict[str, Any]:
             [
                 {
                     "role": "system",
-                    "content": (
-                        "You are a marketing analyst. Write a concise 2–3 sentence "
-                        "narrative summarising the brand's exposure on Perplexity AI. "
-                        "Be factual and actionable."
-                    ),
+                    "content": REPORT_SUMMARY_SYSTEM,
                 },
                 {"role": "user", "content": summary_input},
             ]
@@ -98,8 +96,14 @@ def report_generator(state: AgentState) -> dict[str, Any]:
         }
 
         logger.info(
-            "[report_generator] DONE | exposure_rate=%.1f%%", exposure_rate
+            "[report_generator] DONE | domain=%s | rate=%.1f%%",
+            domain,
+            exposure_rate,
         )
+
+        # Persist results to Database (Prisma)
+        await db_service.save_analysis_result(domain, report)
+
         return {"report": report}
 
     except Exception as exc:  # noqa: BLE001

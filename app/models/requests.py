@@ -4,6 +4,21 @@ import re
 from pydantic import BaseModel, field_validator
 
 
+class DomainCreateRequest(BaseModel):
+    """Request body to register a new domain."""
+    domain: str
+
+    @field_validator("domain")
+    @classmethod
+    def validate_domain(cls, v: str) -> str:
+        v = v.strip().lower()
+        v = re.sub(r"^https?://", "", v)
+        v = v.split("/")[0]
+        pattern = r"^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+        if not re.match(pattern, v):
+            raise ValueError(f"Invalid domain: {v}")
+        return v
+
 class EvaluateRequest(BaseModel):
     """Request body for the /evaluate endpoint."""
 

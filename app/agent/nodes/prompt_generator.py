@@ -13,27 +13,10 @@ from typing import Any
 from langchain_openai import ChatOpenAI
 
 from app.agent.state import AgentState
+from app.agent.prompts import PROMPT_GENERATOR_SYSTEM, PROMPT_GENERATOR_USER_TEMPLATE
 from app.config import settings
 
 logger = logging.getLogger(__name__)
-
-GENERATION_SYSTEM = (
-    "You are an expert at writing realistic search queries that real people "
-    "type into AI assistants like Perplexity. You will be given context about "
-    "a brand and must generate exactly {count} prompts.\n\n"
-    "RULES:\n"
-    "- Prompts must NOT mention the brand by name.\n"
-    "- They should be generic queries in the brand's domain/market.\n"
-    "- Cover a variety of intents:\n"
-    "  • Comparison queries (\"What is the best X for Y use case?\")\n"
-    "  • Problem-solving queries (\"How do I solve X problem?\")\n"
-    "  • Recommendation queries (\"What tools do professionals use for X?\")\n"
-    "  • Alternative queries (\"What are alternatives to [competitor]?\")\n"
-    "  • Discovery queries (\"What are the top X tools in [market category]?\")\n"
-    "- Prompts should be at the difficulty/specificity level an informed user "
-    "in this domain would ask.\n\n"
-    "Return ONLY a JSON array of exactly {count} strings. No explanation."
-)
 
 
 def prompt_generator(state: AgentState) -> dict[str, Any]:
@@ -51,15 +34,14 @@ def prompt_generator(state: AgentState) -> dict[str, Any]:
             max_tokens=2048,
         )
 
-        user_msg = (
-            "Here is the brand context:\n\n"
-            f"{json.dumps(brand_context, indent=2)}\n\n"
-            f"Generate exactly {count} prompts following the rules in the system message."
+        user_msg = PROMPT_GENERATOR_USER_TEMPLATE.format(
+            brand_context_json=json.dumps(brand_context, indent=2),
+            count=count
         )
 
         response = llm.invoke(
             [
-                {"role": "system", "content": GENERATION_SYSTEM.format(count=count)},
+                {"role": "system", "content": PROMPT_GENERATOR_SYSTEM.format(count=count)},
                 {"role": "user", "content": user_msg},
             ]
         )

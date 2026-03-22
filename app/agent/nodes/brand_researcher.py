@@ -16,7 +16,9 @@ from pydantic import BaseModel, Field
 
 from app.agent.state import AgentState
 from app.agent.tools.web_search import search_brand
+from app.agent.prompts import BRAND_RESEARCHER_SYSTEM, BRAND_RESEARCHER_USER_TEMPLATE
 from app.config import settings
+from app.services.db_service import db_service
 
 logger = logging.getLogger(__name__)
 
@@ -53,31 +55,40 @@ async def _scrape_homepage(domain: str) -> str:
     url = f"https://{domain}"
     try:
         async with httpx.AsyncClient(
-            timeout=15, follow_redirects=True, 
+            timeout=15.0, follow_redirects=True, 
         ) as client:
             logger.info("Scraping homepage | url=%s", url)
             resp = await client.get(url)
             resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
+            text = resp.text
+            
+        soup = BeautifulSoup(text, "html.parser")
         # Remove script / style tags
         for tag in soup(["script", "style", "noscript"]):
             tag.decompose()
-        text = soup.get_text(separator=" ", strip=True)
+        clean_text = soup.get_text(separator=" ", strip=True)
         # Truncate to avoid blowing up the LLM context
-        return text[:6000]
+        return clean_text[:6000]
     except Exception as exc:  # noqa: BLE001
         logger.warning("Failed to scrape homepage for %s: %s", domain, exc)
         return ""
 
 
 # ── Node function ───────────────────────────────────────────────────────────
-def brand_researcher(state: AgentState) -> dict[str, Any]:
+async def brand_researcher(state: AgentState) -> dict[str, Any]:
     """Research the brand and store structured context in state."""
     domain = state["domain"]
     logger.info("[brand_researcher] START | domain=%s", domain)
 
     try:
+        # 0. Ensure domain exists in DB
+        await db_service.ensure_domain_exists(domain)
+
         # 1. Web search
+        # We need to run synchronous tool in a thread if we want to keep async loop clean,
+        # but web_search.search_brand is likely synchronous. 
+        # For simplicity in this node, we can just call it directly or wrap it if needed.
+        # Assuming search_brand is blocking but fast enough or we accept it blocks loop briefly.
         search_results = search_brand(
             f'"{ domain}" product features reviews', max_results=10
         )
@@ -87,7 +98,7 @@ def brand_researcher(state: AgentState) -> dict[str, Any]:
         )
 
         # 2. Scrape homepage
-        homepage_text = _scrape_homepage(domain)
+        homepage_text = await _scrape_homepage(domain)
 
         # 3. LLM structured extraction
         llm = ChatOpenAI(
@@ -97,27 +108,40 @@ def brand_researcher(state: AgentState) -> dict[str, Any]:
             max_tokens=2048,
         )
         structured_llm = llm.with_structured_output(BrandInfo)
-
-        extraction_prompt = (
-            "You are a brand analyst. Based on the data below, extract structured "
-            "information about the brand/product associated with the domain "
-            f"**{domain}**.\n\n"
-            "--- WEB SEARCH RESULTS ---\n"
-            f"{search_text}\n\n"
-            "--- HOMEPAGE TEXT ---\n"
-            f"{homepage_text}\n\n"
-            "Return all requested fields. If a field cannot be determined, "
-            "make a reasonable inference or state 'Unknown'."
+        
+        # Invoke LLM
+        # with_structured_output returns a runnable, so we invoke it.
+        # Invoke is synchronous, so we might want to wrap it in run_in_executor if we want full async,
+        # but for now let's use ainvoke if available or just invoke.
+        # ChatOpenAI supports ainvoke.
+        
+        res = await structured_llm.ainvoke(
+            [
+                {
+                    "role": "system",
+                    "content": BRAND_RESEARCHER_SYSTEM,
+                },
+                {
+                    "role": "user",
+                    "content": BRAND_RESEARCHER_USER_TEMPLATE.format(
+                        domain=domain,
+                        homepage_text=homepage_text,
+                        search_text=search_text
+                    ),
+                },
+            ]
         )
 
-        brand_info: BrandInfo = structured_llm.invoke(extraction_prompt)  # type: ignore[assignment]
-
-        brand_context = brand_info.model_dump()
+        brand_context = res.model_dump()
         logger.info(
-            "[brand_researcher] DONE | brand_name=%s", brand_context["brand_name"]
+            "[brand_researcher] DONE | brand=%s", brand_context.get("brand_name")
         )
+
+        # Save brand identity to DB
+        await db_service.update_brand_identity(domain, brand_context)
+
         return {
-            "brand_name": brand_context["brand_name"],
+            "brand_name": brand_context.get("brand_name"),
             "brand_context": brand_context,
         }
 

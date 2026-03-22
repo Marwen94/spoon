@@ -102,6 +102,8 @@ graph TD
 | `LOG_LEVEL` | Logging level (default: `INFO`). | ❌ |
 | `PERPLEXITY_MAX_WORKERS` | Max concurrent requests to Perplexity (default: `5`). | ❌ |
 | `WORKFLOW_TIMEOUT` | Max execution time in seconds (default: `300`). | ❌ |
+| `SUPABASE_URL` | Supabase Project URL. | ❌ |
+| `SUPABASE_KEY` | Supabase Service Role Key (or Anon Key if configured). | ❌ |
 
 ---
 
