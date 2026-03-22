@@ -1,5 +1,7 @@
 # 🥄 SPOON
 
+⚠️ ALPHA SOFTWARE — expect bugs, breaking changes, and rough edges. Your feedback is genuinely valuable — please open an issue with anything you find.
+
 ![Spoon Demo](assets/spoon.gif)
 
 A multi-agent workflow that evaluates how well a product or brand is exposed on [Perplexity AI](https://www.perplexity.ai/).  
