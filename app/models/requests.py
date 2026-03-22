@@ -2,7 +2,41 @@
 
 import re
 from pydantic import BaseModel, field_validator
+from typing import Any
 
+class DomainCreateRequest(BaseModel):
+    """Request body to register a new domain."""
+    domain: str
+
+    @field_validator("domain")
+    @classmethod
+    def validate_domain(cls, v: str) -> str:
+        v = v.strip().lower()
+        v = re.sub(r"^https?://", "", v)
+        v = v.split("/")[0]
+        pattern = r"^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+        if not re.match(pattern, v):
+            raise ValueError(f"Invalid domain: {v}")
+        return v
+
+class DomainUpdateRequest(BaseModel):
+    """Request body to update a domain's brand identity."""
+    brand_identity: dict[str, Any]
+
+class ContextAddSourceRequest(BaseModel):
+    """Request body to add a source to domain context."""
+    url: str
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v: str) -> str:
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        return v
+
+class ContextAddCompetitorRequest(BaseModel):
+    """Request body to add a competitor to domain context."""
+    name: str
 
 class EvaluateRequest(BaseModel):
     """Request body for the /evaluate endpoint."""

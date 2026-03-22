@@ -1,5 +1,7 @@
 # 🥄 SPOON
 
+⚠️ ALPHA SOFTWARE — expect bugs, breaking changes, and rough edges. Your feedback is genuinely valuable — please open an issue with anything you find.
+
 ![Spoon Demo](assets/spoon.gif)
 
 A multi-agent workflow that evaluates how well a product or brand is exposed on [Perplexity AI](https://www.perplexity.ai/).  
@@ -102,6 +104,8 @@ graph TD
 | `LOG_LEVEL` | Logging level (default: `INFO`). | ❌ |
 | `PERPLEXITY_MAX_WORKERS` | Max concurrent requests to Perplexity (default: `5`). | ❌ |
 | `WORKFLOW_TIMEOUT` | Max execution time in seconds (default: `300`). | ❌ |
+| `SUPABASE_URL` | Supabase Project URL. | ❌ |
+| `SUPABASE_KEY` | Supabase Service Role Key (or Anon Key if configured). | ❌ |
 
 ---
 

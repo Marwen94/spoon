@@ -16,6 +16,7 @@ class PerplexityResult(BaseModel):
     citations: list[str]  # list of source URLs
     brand_mentioned: bool  # whether the brand appeared
     brand_mention_context: str  # the sentence(s) where brand was mentioned
+    competitors_mentioned: list[str] = [] # list of competitors extracted from the completion
 
 
 class AgentState(TypedDict):

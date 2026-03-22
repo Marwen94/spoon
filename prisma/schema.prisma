@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Domain {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  brandIdentity Json?    @map("brand_identity") // Stores the result of brand research
+  reports       Report[]
+  context       Context?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("domains")
+}
+
+model Context {
+  id              Int              @id @default(autoincrement())
+  domainId        Int              @unique @map("domain_id")
+  domain          Domain           @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  sources         Source[]
+  competitors     Competitor[]
+  promptResponses PromptResponse[]
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  @@map("contexts")
+}
+
+model Report {
+  id                     Int              @id @default(autoincrement())
+  domainId               Int              @map("domain_id")
+  domain                 Domain           @relation(fields: [domainId], references: [id])
+  exposureRate           Float            @map("exposure_rate")
+  totalPrompts           Int              @map("total_prompts")
+  brandMentionedCount    Int              @map("brand_mentioned_count")
+  brandNotMentionedCount Int              @map("brand_not_mentioned_count")
+  summary                String
+  promptResponses        PromptResponse[]
+  createdAt              DateTime         @default(now()) @map("created_at")
+
+  @@map("reports")
+}
+
+model PromptResponse {
+  id             Int      @id @default(autoincrement())
+  reportId       Int      @map("report_id")
+  report         Report   @relation(fields: [reportId], references: [id])
+  contextId      Int?     @map("context_id")
+  context        Context? @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  prompt         String
+  completion     String
+  brandMentioned Boolean  @map("brand_mentioned")
+  mentionContext String   @map("mention_context")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  sources     Source[]
+  competitors Competitor[]
+
+  @@map("prompt_responses")
+}
+
+model Source {
+  id               Int             @id @default(autoincrement())
+  promptResponseId Int?            @map("prompt_response_id")
+  promptResponse   PromptResponse? @relation(fields: [promptResponseId], references: [id], onDelete: Cascade)
+  contextId        Int?            @map("context_id")
+  context          Context?        @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  url              String
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  @@map("sources")
+}
+
+model Competitor {
+  id               Int             @id @default(autoincrement())
+  promptResponseId Int?            @map("prompt_response_id")
+  promptResponse   PromptResponse? @relation(fields: [promptResponseId], references: [id], onDelete: Cascade)
+  contextId        Int?            @map("context_id")
+  context          Context?        @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  name             String
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  @@map("competitors")
+}

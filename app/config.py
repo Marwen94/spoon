@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gpt-4o"
     LOG_LEVEL: str = "INFO"
 
+    # Supabase Persistence
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+    DATABASE_URL: str = "" # Required by Prisma, added here to avoid "extra forbidden" error
+
     # LangSmith tracing (optional)
     LANGSMITH_API_KEY: str = ""
     LANGSMITH_PROJECT: str = "gen-seo-metric"

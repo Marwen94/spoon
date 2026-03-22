@@ -41,6 +41,9 @@ def build_graph() -> Any:
     graph = StateGraph(AgentState)
 
     # Add nodes
+    # Note: brand_researcher and report_generator are async functions.
+    # prompt_generator and perplexity_runner are sync functions.
+    # LangGraph handles both.
     graph.add_node("brand_researcher", brand_researcher)
     graph.add_node("prompt_generator", prompt_generator)
     graph.add_node("perplexity_runner", perplexity_runner)
@@ -79,8 +82,8 @@ compiled_graph = build_graph()
 async def run_graph(domain: str, prompts_count: int = 5) -> dict[str, Any]:
     """Run the full evaluation workflow for *domain*.
 
-    The graph nodes are synchronous, so we run the compiled graph
-    in a thread to keep the FastAPI event loop free.
+    The graph nodes are mostly synchronous, but report_generator is async.
+    We run the compiled graph via ainvoke to support async nodes.
     """
     initial_state: AgentState = {
         "domain": domain,
@@ -95,8 +98,9 @@ async def run_graph(domain: str, prompts_count: int = 5) -> dict[str, Any]:
 
     logger.info("Starting graph for domain=%s", domain)
 
+    # Use ainvoke for async graph execution
     result = await asyncio.wait_for(
-        asyncio.to_thread(compiled_graph.invoke, initial_state),
+        compiled_graph.ainvoke(initial_state),
         timeout=settings.WORKFLOW_TIMEOUT,
     )
 

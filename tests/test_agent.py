@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from unittest.mock import patch, MagicMock
 
-from app.agent.state import AgentState, PerplexityResult
+from app.agent.state import AgentState
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

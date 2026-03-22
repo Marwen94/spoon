@@ -16,10 +16,12 @@ from pydantic import BaseModel, Field
 
 from app.agent.state import AgentState
 from app.agent.tools.web_search import search_brand
+from app.agent.prompts import BRAND_RESEARCHER_SYSTEM, BRAND_RESEARCHER_USER_TEMPLATE
 from app.config import settings
+from app.services.db_service import db_service
+from app.utils import is_safe_domain
 
 logger = logging.getLogger(__name__)
-
 
 # ── Structured output schema ────────────────────────────────────────────────
 class BrandInfo(BaseModel):
@@ -50,74 +52,112 @@ class BrandInfo(BaseModel):
 # ── Helper: scrape homepage ─────────────────────────────────────────────────
 async def _scrape_homepage(domain: str) -> str:
     """Fetch the homepage HTML and return visible text (best-effort)."""
+    if not is_safe_domain(domain):
+        logger.warning("Unsafe domain detected (SSRF prevention): %s", domain)
+        return ""
+        
     url = f"https://{domain}"
     try:
         async with httpx.AsyncClient(
-            timeout=15, follow_redirects=True, 
+            timeout=15.0, follow_redirects=True, 
         ) as client:
             logger.info("Scraping homepage | url=%s", url)
             resp = await client.get(url)
             resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
+            text = resp.text
+            
+        soup = BeautifulSoup(text, "html.parser")
         # Remove script / style tags
         for tag in soup(["script", "style", "noscript"]):
             tag.decompose()
-        text = soup.get_text(separator=" ", strip=True)
+        clean_text = soup.get_text(separator=" ", strip=True)
         # Truncate to avoid blowing up the LLM context
-        return text[:6000]
+        return clean_text[:6000]
     except Exception as exc:  # noqa: BLE001
         logger.warning("Failed to scrape homepage for %s: %s", domain, exc)
         return ""
 
 
 # ── Node function ───────────────────────────────────────────────────────────
-def brand_researcher(state: AgentState) -> dict[str, Any]:
+async def brand_researcher(state: AgentState) -> dict[str, Any]:
     """Research the brand and store structured context in state."""
     domain = state["domain"]
     logger.info("[brand_researcher] START | domain=%s", domain)
 
     try:
-        # 1. Web search
-        search_results = search_brand(
-            f'"{ domain}" product features reviews', max_results=10
-        )
-        search_text = "\n\n".join(
-            f"**{r.get('title', '')}** ({r.get('url', '')})\n{r.get('content', '')}"
-            for r in search_results
-        )
+        # 0. Ensure domain exists in DB
+        await db_service.ensure_domain_exists(domain)
+        existing_domain = await db_service.get_domain_by_name(domain)
 
-        # 2. Scrape homepage
-        homepage_text = _scrape_homepage(domain)
+        # Check if we already have a complete brand identity
+        if existing_domain and existing_domain.brandIdentity and isinstance(existing_domain.brandIdentity, dict) and existing_domain.brandIdentity.get("brand_name"):
+            logger.info("[brand_researcher] Using existing brand identity for domain=%s", domain)
+            brand_context = dict(existing_domain.brandIdentity)
+        else:
+            # 1. Web search
+            search_results = search_brand(
+                f'"{ domain}" product features reviews', max_results=10
+            )
+            search_text = "\n\n".join(
+                f"**{r.get('title', '')}** ({r.get('url', '')})\n{r.get('content', '')}"
+                for r in search_results
+            )
 
-        # 3. LLM structured extraction
-        llm = ChatOpenAI(
-            model=settings.LLM_MODEL,
-            api_key=settings.OPENAI_API_KEY,
-            temperature=0,
-            max_tokens=2048,
-        )
-        structured_llm = llm.with_structured_output(BrandInfo)
+            # 2. Scrape homepage
+            homepage_text = await _scrape_homepage(domain)
 
-        extraction_prompt = (
-            "You are a brand analyst. Based on the data below, extract structured "
-            "information about the brand/product associated with the domain "
-            f"**{domain}**.\n\n"
-            "--- WEB SEARCH RESULTS ---\n"
-            f"{search_text}\n\n"
-            "--- HOMEPAGE TEXT ---\n"
-            f"{homepage_text}\n\n"
-            "Return all requested fields. If a field cannot be determined, "
-            "make a reasonable inference or state 'Unknown'."
-        )
+            # 3. LLM structured extraction
+            llm = ChatOpenAI(
+                model=settings.LLM_MODEL,
+                api_key=settings.OPENAI_API_KEY,
+                temperature=0,
+                max_tokens=2048,
+            )
+            structured_llm = llm.with_structured_output(BrandInfo)
+            
+            res = await structured_llm.ainvoke(
+                [
+                    {
+                        "role": "system",
+                        "content": BRAND_RESEARCHER_SYSTEM,
+                    },
+                    {
+                        "role": "user",
+                        "content": BRAND_RESEARCHER_USER_TEMPLATE.format(
+                            domain=domain,
+                            homepage_text=homepage_text,
+                            search_text=search_text
+                        ),
+                    },
+                ]
+            )
 
-        brand_info: BrandInfo = structured_llm.invoke(extraction_prompt)  # type: ignore[assignment]
+            brand_context = res.model_dump()
+            logger.info(
+                "[brand_researcher] DONE | scraped brand=%s", brand_context.get("brand_name")
+            )
 
-        brand_context = brand_info.model_dump()
-        logger.info(
-            "[brand_researcher] DONE | brand_name=%s", brand_context["brand_name"]
-        )
+        # Now context is stored in the domain.context relation, let's grab them
+        if existing_domain and getattr(existing_domain, "context", None):
+            context_comps = [c.name for c in getattr(existing_domain.context, "competitors", [])]
+            context_sources = [s.url for s in getattr(existing_domain.context, "sources", [])]
+            
+            # Append existing competitors from context that aren't in the new extraction
+            new_comps = brand_context.get("competitors", [])
+            for c in context_comps:
+                if c not in new_comps:
+                    new_comps.append(c)
+            brand_context["competitors"] = new_comps
+
+            # Pass sources along to brand_context so prompt generator can use them
+            if context_sources:
+                brand_context["sources"] = context_sources
+
+        # Save brand identity to DB
+        await db_service.update_brand_identity(domain, brand_context)
+
         return {
-            "brand_name": brand_context["brand_name"],
+            "brand_name": brand_context.get("brand_name"),
             "brand_context": brand_context,
         }
 
