@@ -37,7 +37,9 @@ PROMPT_GENERATOR_SYSTEM = (
 PROMPT_GENERATOR_USER_TEMPLATE = (
     "Here is the brand context:\n\n"
     "{brand_context_json}\n\n"
-    "Generate exactly {count} prompts following the rules in the system message."
+    "Here are prompts that have ALREADY been generated in the past. DO NOT generate these again:\n"
+    "{previous_prompts_list}\n\n"
+    "Generate exactly {count} NEW prompts following the rules in the system message."
 )
 
 

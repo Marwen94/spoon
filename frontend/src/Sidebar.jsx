@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 const Sidebar = ({
   domains,
   selectedDomain,
+  activeTab,
   newDomain,
   setNewDomain,
   onSelectDomain,
@@ -19,22 +20,46 @@ const Sidebar = ({
         <h3>Registered Domains</h3>
         <ul className="domain-list">
           {domains.map((d) => (
-            <li 
-              key={d.id} 
-              className={`domain-item ${selectedDomain?.id === d.id ? 'active' : ''}`}
-              onClick={() => onSelectDomain(d)}
-            >
-              <span className="domain-name">{d.name}</span>
-              <button 
-                className="delete-domain-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteDomain(d.name);
-                }}
-                title="Delete domain"
+            <li key={d.id} className="domain-list-container">
+              <div 
+                className={`domain-item ${selectedDomain?.id === d.id ? 'active' : ''}`}
+                onClick={() => onSelectDomain(d)}
               >
-                ×
-              </button>
+                <span className="domain-name">{d.name}</span>
+                <button 
+                  className="delete-domain-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteDomain(d.name);
+                  }}
+                  title="Delete domain"
+                >
+                  ×
+                </button>
+              </div>
+              
+              {selectedDomain?.id === d.id && (
+                <ul className="sub-menu">
+                  <li 
+                    className={`sub-menu-item ${activeTab === 'brand-identity' ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectDomain(d, 'brand-identity');
+                    }}
+                  >
+                    Brand Identity
+                  </li>
+                  <li 
+                    className={`sub-menu-item ${activeTab === 'exposure-analysis' ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectDomain(d, 'exposure-analysis');
+                    }}
+                  >
+                    Exposure Analysis
+                  </li>
+                </ul>
+              )}
             </li>
           ))}
           {domains.length === 0 && (
@@ -65,6 +90,7 @@ const Sidebar = ({
 Sidebar.propTypes = {
   domains: PropTypes.array.isRequired,
   selectedDomain: PropTypes.object,
+  activeTab: PropTypes.string,
   newDomain: PropTypes.string.isRequired,
   setNewDomain: PropTypes.func.isRequired,
   onSelectDomain: PropTypes.func.isRequired,
