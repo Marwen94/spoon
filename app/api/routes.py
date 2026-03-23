@@ -155,6 +155,20 @@ async def add_competitor_to_context(domain_name: str, body: ContextAddCompetitor
         logger.exception(f"Failed to add competitor: {e}")
         raise HTTPException(status_code=500, detail="Failed to add competitor")
 
+@router.delete("/domains/{domain_name}/context")
+async def clear_domain_context(domain_name: str) -> dict:
+    """Clear all sources and competitors from a domain's context."""
+    try:
+        success = await db_service.clear_domain_context(domain_name)
+        if not success:
+            raise HTTPException(status_code=404, detail="Domain not found")
+        return {"status": "success", "message": "Context cleared"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Failed to clear context: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clear context")
+
 
 @router.post(
     "/evaluate",
