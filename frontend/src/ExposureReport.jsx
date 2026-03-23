@@ -1,4 +1,5 @@
 import GraphVisualization from './GraphVisualization';
+import PromptItem from './PromptItem';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 
@@ -108,55 +109,15 @@ const ExposureReport = ({
           {filteredReport.appeared_examples && filteredReport.appeared_examples.length > 0 && (
             <div className="examples">
               <h3>Where it appeared</h3>
-              <ul>
+              <ul className="prompt-list">
                 {filteredReport.appeared_examples.map((ex, i) => (
-                  <li key={i}>
-                    <strong>Prompt:</strong> {ex.prompt}
-                    <br/>
-                    <small>Context: {ex.mention_context}</small>
-                    {ex.sources && ex.sources.length > 0 && (
-                      <div className="sources-list">
-                        <h4>Sources used:</h4>
-                        <ul>
-                          {ex.sources.map((source, j) => (
-                            <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <a href={source.startsWith('http') ? source : `https://${source}`} target="_blank" rel="noopener noreferrer">
-                                {source}
-                              </a>
-                              <button 
-                                className="small-btn save" 
-                                style={{ padding: '2px 6px', fontSize: '0.75rem', marginLeft: 'auto' }}
-                                onClick={() => handleAddSourceToContext(source)}
-                                title="Add to Domain Context"
-                              >
-                                + Add to context
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {ex.competitors_mentioned && ex.competitors_mentioned.length > 0 && (
-                      <div className="competitors-mentioned">
-                        <h4>Competitors mentioned:</h4>
-                        <div className="chips-container small">
-                          {ex.competitors_mentioned.map((comp, j) => (
-                            <span key={j} className="chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              {comp}
-                              <button 
-                                className="small-btn save" 
-                                style={{ padding: '0px 4px', fontSize: '0.7rem', borderRadius: '4px', minWidth: 'auto' }}
-                                onClick={() => handleAddCompetitorToContext(comp)}
-                                title="Add to Domain Context"
-                              >
-                                + Add
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </li>
+                  <PromptItem 
+                    key={`appeared-${i}`}
+                    ex={ex}
+                    isAppeared={true}
+                    handleAddSourceToContext={handleAddSourceToContext}
+                    handleAddCompetitorToContext={handleAddCompetitorToContext}
+                  />
                 ))}
               </ul>
             </div>
@@ -165,60 +126,15 @@ const ExposureReport = ({
           {filteredReport.not_appeared_examples && filteredReport.not_appeared_examples.length > 0 && (
             <div className="examples">
               <h3>Where it did NOT appear</h3>
-              <ul>
+              <ul className="prompt-list">
                 {filteredReport.not_appeared_examples.map((ex, i) => (
-                  <li key={i}>
-                    <strong>Prompt:</strong> {ex.prompt}
-                    <br/>
-                    {ex.completion_summary && (
-                      <>
-                        <small>Summary: {ex.completion_summary}</small>
-                        <br/>
-                      </>
-                    )}
-                    {ex.sources && ex.sources.length > 0 && (
-                      <div className="sources-list">
-                        <h4>Sources used:</h4>
-                        <ul>
-                          {ex.sources.map((source, j) => (
-                            <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <a href={source.startsWith('http') ? source : `https://${source}`} target="_blank" rel="noopener noreferrer">
-                                {source}
-                              </a>
-                              <button 
-                                className="small-btn save" 
-                                style={{ padding: '2px 6px', fontSize: '0.75rem', marginLeft: 'auto' }}
-                                onClick={() => handleAddSourceToContext(source)}
-                                title="Add to Domain Context"
-                              >
-                                + Add to context
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {ex.competitors_mentioned && ex.competitors_mentioned.length > 0 && (
-                      <div className="competitors-mentioned">
-                        <h4>Competitors mentioned:</h4>
-                        <div className="chips-container small">
-                          {ex.competitors_mentioned.map((comp, j) => (
-                            <span key={j} className="chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              {comp}
-                              <button 
-                                className="small-btn save" 
-                                style={{ padding: '0px 4px', fontSize: '0.7rem', borderRadius: '4px', minWidth: 'auto' }}
-                                onClick={() => handleAddCompetitorToContext(comp)}
-                                title="Add to Domain Context"
-                              >
-                                + Add
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </li>
+                  <PromptItem 
+                    key={`not-appeared-${i}`}
+                    ex={ex}
+                    isAppeared={false}
+                    handleAddSourceToContext={handleAddSourceToContext}
+                    handleAddCompetitorToContext={handleAddCompetitorToContext}
+                  />
                 ))}
               </ul>
             </div>

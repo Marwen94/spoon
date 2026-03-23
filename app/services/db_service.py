@@ -136,6 +136,21 @@ class DBService:
             logger.error(f"Failed to fetch reports for domain {domain_name}: {e}")
             return []
 
+    async def get_previous_prompts_for_domain(self, domain_name: str) -> list[str]:
+        """Get a flat list of all prompts previously generated for a domain."""
+        try:
+            reports = await self.get_reports_for_domain(domain_name)
+            previous_prompts = []
+            for report in reports:
+                if getattr(report, "promptResponses", None):
+                    for pr in report.promptResponses:
+                        if pr.prompt and pr.prompt not in previous_prompts:
+                            previous_prompts.append(pr.prompt)
+            return previous_prompts
+        except Exception as e:
+            logger.error(f"Failed to fetch previous prompts for domain {domain_name}: {e}")
+            return []
+
     async def delete_domain(self, domain_name: str) -> bool:
         """Delete a domain and all its cascading data (reports, prompt responses)."""
         try:
@@ -199,21 +214,30 @@ class DBService:
             logger.error(f"Failed to ensure domain {domain}: {e}")
             raise
 
-    async def update_brand_identity(self, domain: str, brand_identity: dict[str, Any]) -> None:
+    async def update_brand_identity(self, domain: str, brand_identity: dict[str, Any]) -> Any:
         """Update the brand identity for a domain.
         
         Args:
             domain: The domain to update
             brand_identity: The structured brand identity dictionary
+            
+        Returns:
+            The updated domain object, or None if not found/failed
         """
         try:
             await self.connect()
             
+            # Ensure domain exists first
+            existing = await self.client.domain.find_unique(where={"name": domain})
+            if not existing:
+                logger.warning(f"Domain not found for brand identity update: {domain}")
+                return None
+                
             # Since brandIdentity is a Json field, we pass the dict directly
             # Prisma Python client handles JSON serialization
             import json
             
-            await self.client.domain.update(
+            updated_domain = await self.client.domain.update(
                 where={
                     "name": domain,
                 },
@@ -222,8 +246,10 @@ class DBService:
                 },
             )
             logger.info(f"Brand identity updated for domain: {domain}")
+            return updated_domain
         except Exception as e:
             logger.error(f"Failed to update brand identity for {domain}: {e}")
+            return None
 
     async def save_analysis_result(self, domain: str, report: dict[str, Any], prompt_results: list[Any] = None) -> None:
         """Persist the analysis result to the database (Domain -> Report -> PromptResponses).
@@ -246,7 +272,9 @@ class DBService:
                 "brandMentionedCount": report.get("brand_mentioned_count", 0),
                 "brandNotMentionedCount": report.get("brand_not_mentioned_count", 0),
                 "summary": report.get("summary", ""),
-                "domainId": db_domain.id,
+                "domain": {
+                    "connect": {"id": db_domain.id}
+                },
             }
 
             db_report = await self.client.report.create(data=report_data)
@@ -297,21 +325,23 @@ class DBService:
                 # Prepare nested creates for competitors
                 competitors_data = [{"name": comp} for comp in item["competitorsMentioned"]]
                 
-                await self.client.promptresponse.create(
-                    data={
-                        "reportId": db_report.id,
-                        "prompt": item["prompt"],
-                        "completion": item["completion"],
-                        "brandMentioned": item["brandMentioned"],
-                        "mentionContext": item["mentionContext"],
-                        "sources": {
-                            "create": sources_data
-                        } if sources_data else None,
-                        "competitors": {
-                            "create": competitors_data
-                        } if competitors_data else None
-                    }
-                )
+                create_data = {
+                    "report": {
+                        "connect": {"id": db_report.id}
+                    },
+                    "prompt": item["prompt"],
+                    "completion": item["completion"],
+                    "brandMentioned": item["brandMentioned"],
+                    "mentionContext": item["mentionContext"]
+                }
+                
+                if sources_data:
+                    create_data["sources"] = {"create": sources_data}
+                    
+                if competitors_data:
+                    create_data["competitors"] = {"create": competitors_data}
+                    
+                await self.client.promptresponse.create(data=create_data)
 
             logger.info(f"Analysis result persisted for domain: {domain} (Report ID: {db_report.id})")
 

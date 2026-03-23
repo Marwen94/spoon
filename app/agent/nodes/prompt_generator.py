@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import asyncio
 from typing import Any
 
 from langchain_openai import ChatOpenAI
@@ -15,11 +16,12 @@ from langchain_openai import ChatOpenAI
 from app.agent.state import AgentState
 from app.agent.prompts import PROMPT_GENERATOR_SYSTEM, PROMPT_GENERATOR_USER_TEMPLATE
 from app.config import settings
+from app.services.db_service import db_service
 
 logger = logging.getLogger(__name__)
 
 
-def prompt_generator(state: AgentState) -> dict[str, Any]:
+async def prompt_generator(state: AgentState) -> dict[str, Any]:
     """Generate Perplexity-style prompts from the brand context."""
     brand_context = state["brand_context"]
     domain = state["domain"]
@@ -27,6 +29,10 @@ def prompt_generator(state: AgentState) -> dict[str, Any]:
     logger.info("[prompt_generator] START | domain=%s | count=%d", domain, count)
 
     try:
+        # Fetch previously generated prompts
+        previous_prompts = await db_service.get_previous_prompts_for_domain(domain)
+        previous_prompts_list = "\n".join([f"- {p}" for p in previous_prompts]) if previous_prompts else "None"
+
         llm = ChatOpenAI(
             model=settings.LLM_MODEL,
             api_key=settings.OPENAI_API_KEY,
@@ -36,10 +42,11 @@ def prompt_generator(state: AgentState) -> dict[str, Any]:
 
         user_msg = PROMPT_GENERATOR_USER_TEMPLATE.format(
             brand_context_json=json.dumps(brand_context, indent=2),
+            previous_prompts_list=previous_prompts_list,
             count=count
         )
 
-        response = llm.invoke(
+        response = await llm.ainvoke(
             [
                 {"role": "system", "content": PROMPT_GENERATOR_SYSTEM.format(count=count)},
                 {"role": "user", "content": user_msg},

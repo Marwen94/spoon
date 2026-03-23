@@ -9,6 +9,7 @@ import './App.css';
 function App() {
   const [domains, setDomains] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState(null);
+  const [activeTab, setActiveTab] = useState('exposure-analysis'); // 'exposure-analysis' or 'brand-identity'
   const [newDomain, setNewDomain] = useState('');
   
   const [promptsCount, setPromptsCount] = useState(5);
@@ -29,18 +30,22 @@ function App() {
 
   const handleAddSourceToContext = async (url) => {
     if (!selectedDomain) return;
+    
+    // Ensure URL starts with http:// or https:// before sending to backend
+    const validUrl = url.startsWith('http') ? url : `https://${url}`;
+    
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/domains/${selectedDomain.name}/context/sources`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ url: validUrl })
       });
       if (!res.ok) throw new Error('Failed to add source to context');
       
       // Update local state to append to context
       if (selectedDomain) {
         const newContext = { ...(selectedDomain.context || { sources: [], competitors: [] }) };
-        if (!newContext.sources.includes(url)) newContext.sources.push(url);
+        if (!newContext.sources.includes(validUrl)) newContext.sources.push(validUrl);
         
         const updatedDomain = { ...selectedDomain, context: newContext };
         setSelectedDomain(updatedDomain);
@@ -147,8 +152,9 @@ function App() {
     }
   };
 
-  const handleSelectDomain = (domain) => {
+  const handleSelectDomain = (domain, tab = 'exposure-analysis') => {
     setSelectedDomain(domain);
+    setActiveTab(tab);
     localStorage.setItem('selectedDomain', JSON.stringify(domain));
     setReport(null); // Clear previous report when switching domains
     setError(null);
@@ -403,7 +409,10 @@ function App() {
     }
 
     return (
-      <div className="context-markdown fade-in">
+      <div className="context-markdown fade-in" style={{ marginTop: '1rem', marginBottom: '2rem' }}>
+        <p style={{ color: '#6c757d', fontStyle: 'italic', marginBottom: '0.75rem', fontSize: '0.95rem' }}>
+          The following context has been gathered and will be used to guide the next analysis run:
+        </p>
         <div className="markdown-block">
           <pre><code>{md}</code></pre>
           <button 
@@ -425,6 +434,7 @@ function App() {
       <Sidebar 
         domains={domains}
         selectedDomain={selectedDomain}
+        activeTab={activeTab}
         newDomain={newDomain}
         setNewDomain={setNewDomain}
         onSelectDomain={handleSelectDomain}
@@ -442,17 +452,10 @@ function App() {
         ) : (
           <div className="analysis-view">
             <header className="content-header">
-              <h1>Analyzing: <strong>{selectedDomain.name}</strong></h1>
+              <h1>{activeTab === 'brand-identity' ? 'Brand Identity' : 'Exposure Analysis'}: <strong>{selectedDomain.name}</strong></h1>
             </header>
 
-            <AnalysisForm 
-              promptsCount={promptsCount}
-              setPromptsCount={setPromptsCount}
-              loading={loading}
-              handleAnalyze={handleAnalyze}
-            />
-
-            {(
+            {activeTab === 'brand-identity' ? (
               <BrandIdentity 
                 selectedDomain={selectedDomain}
                 isEditingIdentity={isEditingIdentity}
@@ -463,24 +466,33 @@ function App() {
                 handleArrayIdentityChange={handleArrayIdentityChange}
                 handleSaveIdentity={handleSaveIdentity}
               />
+            ) : (
+              <>
+                <AnalysisForm 
+                  promptsCount={promptsCount}
+                  setPromptsCount={setPromptsCount}
+                  loading={loading}
+                  handleAnalyze={handleAnalyze}
+                />
+
+                {renderContextMarkdown()}
+
+                {error && <div className="error">{error}</div>}
+
+                <ExposureReport 
+                  report={report}
+                  filteredReport={filteredReport}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  mentionFilter={mentionFilter}
+                  setMentionFilter={setMentionFilter}
+                  history={history}
+                  handleBackToHistory={handleBackToHistory}
+                  handleAddSourceToContext={handleAddSourceToContext}
+                  handleAddCompetitorToContext={handleAddCompetitorToContext}
+                />
+              </>
             )}
-
-            {renderContextMarkdown()}
-
-            {error && <div className="error">{error}</div>}
-
-            <ExposureReport 
-              report={report}
-              filteredReport={filteredReport}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              mentionFilter={mentionFilter}
-              setMentionFilter={setMentionFilter}
-              history={history}
-              handleBackToHistory={handleBackToHistory}
-              handleAddSourceToContext={handleAddSourceToContext}
-              handleAddCompetitorToContext={handleAddCompetitorToContext}
-            />
           </div>
         )}
       </main>

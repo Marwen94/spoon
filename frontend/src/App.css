@@ -78,8 +78,39 @@
 }
 
 .domain-item.active {
+  background-color: #dee2e6; /* changed from dark #333 to lighter gray for parent */
+  color: #333;
+  font-weight: 600;
+}
+
+.sub-menu {
+  list-style: none;
+  padding: 0 0 0 1rem;
+  margin: 0.25rem 0 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-left: 2px solid #dee2e6;
+  margin-left: 1rem;
+}
+
+.sub-menu-item {
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #495057;
+  transition: all 0.2s ease;
+}
+
+.sub-menu-item:hover {
+  background-color: #e9ecef;
+}
+
+.sub-menu-item.active {
   background-color: #333;
   color: white;
+  font-weight: 500;
 }
 
 .domain-name {
@@ -109,7 +140,7 @@
 }
 
 .domain-item.active .delete-domain-btn {
-  color: rgba(255,255,255,0.6);
+  color: #adb5bd; /* changed from white-ish to normal icon color */
   opacity: 1;
 }
 
@@ -333,7 +364,7 @@
   font-size: 1.2rem;
 }
 
-.examples ul {
+.examples ul.prompt-list {
   list-style: none;
   padding: 0;
   display: flex;
@@ -341,12 +372,47 @@
   gap: 1rem;
 }
 
-.examples li {
+.prompt-item {
   background: #fff;
   border: 1px solid #e9ecef;
-  padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  overflow: hidden;
+}
+
+.prompt-header {
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  background-color: #fff;
+  transition: background-color 0.2s;
+}
+
+.prompt-header:hover {
+  background-color: #f8f9fa;
+}
+
+.prompt-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.expand-icon {
+  color: #adb5bd;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+  transition: transform 0.2s;
+}
+
+.prompt-content {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.prompt-detail-section {
+  margin-top: 1rem;
 }
 
 .sources-list {
@@ -512,14 +578,12 @@
 .context-markdown {
   margin-top: 1rem;
   margin-bottom: 2rem;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 .markdown-block {
   position: relative;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .markdown-block pre {

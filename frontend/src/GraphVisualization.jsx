@@ -123,39 +123,74 @@ const GraphVisualization = ({ report, onAddSource, onAddCompetitor }) => {
     }
   }, [onAddSource, onAddCompetitor]);
 
+  useEffect(() => {
+    if (fgRef.current) {
+      // Adjust forces to make the graph sparser
+      fgRef.current.d3Force('charge').strength(-400); // Stronger repulsion (default is around -30)
+      fgRef.current.d3Force('link').distance(100); // Longer links (default is around 30)
+      
+      // Center the graph after a slight delay to let initial layout settle
+      setTimeout(() => {
+        if (fgRef.current) {
+          fgRef.current.zoomToFit(400, 50); // duration ms, padding px
+        }
+      }, 800);
+    }
+  }, [graphData]);
+
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '10px', display: 'flex', gap: '10px', background: '#f8f9fa', borderBottom: '1px solid #ddd' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
-          <input 
-            type="radio" 
-            name="nodeFilter" 
-            value="both" 
-            checked={nodeFilter === 'both'} 
-            onChange={(e) => setNodeFilter(e.target.value)} 
-          />
-          Show All
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
-          <input 
-            type="radio" 
-            name="nodeFilter" 
-            value="sources" 
-            checked={nodeFilter === 'sources'} 
-            onChange={(e) => setNodeFilter(e.target.value)} 
-          />
-          Sources Only
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
-          <input 
-            type="radio" 
-            name="nodeFilter" 
-            value="competitors" 
-            checked={nodeFilter === 'competitors'} 
-            onChange={(e) => setNodeFilter(e.target.value)} 
-          />
-          Competitors Only
-        </label>
+      <div style={{ padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8f9fa', borderBottom: '1px solid #ddd' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
+            <input 
+              type="radio" 
+              name="nodeFilter" 
+              value="both" 
+              checked={nodeFilter === 'both'} 
+              onChange={(e) => setNodeFilter(e.target.value)} 
+            />
+            Show All
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
+            <input 
+              type="radio" 
+              name="nodeFilter" 
+              value="sources" 
+              checked={nodeFilter === 'sources'} 
+              onChange={(e) => setNodeFilter(e.target.value)} 
+            />
+            Sources Only
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
+            <input 
+              type="radio" 
+              name="nodeFilter" 
+              value="competitors" 
+              checked={nodeFilter === 'competitors'} 
+              onChange={(e) => setNodeFilter(e.target.value)} 
+            />
+            Competitors Only
+          </label>
+        </div>
+        
+        <div className="graph-legend" style={{ display: 'flex', gap: '15px', fontSize: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff6b6b', display: 'inline-block' }}></span> Brand
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#4dabf7', display: 'inline-block' }}></span> Prompt (Mentioned)
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#adb5bd', display: 'inline-block' }}></span> Prompt (Missed)
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#51cf66', display: 'inline-block' }}></span> Source
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#fcc419', display: 'inline-block' }}></span> Competitor
+          </div>
+        </div>
       </div>
       
       <div ref={containerRef} style={{ width: '100%', height: '600px', backgroundColor: '#f8f9fa', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
