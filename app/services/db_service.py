@@ -111,6 +111,28 @@ class DBService:
                 
         return existing
 
+    async def clear_domain_context(self, domain_name: str) -> bool:
+        """Clear all sources and competitors from a domain's context."""
+        try:
+            await self.connect()
+            domain = await self.client.domain.find_unique(where={"name": domain_name})
+            if not domain:
+                return False
+                
+            context = await self.client.context.find_unique(where={"domainId": domain.id})
+            if not context:
+                return True # Nothing to clear
+                
+            # Delete associated sources and competitors
+            await self.client.source.delete_many(where={"contextId": context.id})
+            await self.client.competitor.delete_many(where={"contextId": context.id})
+            
+            logger.info(f"Successfully cleared context for domain: {domain_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to clear context for domain {domain_name}: {e}")
+            raise
+
     async def get_reports_for_domain(self, domain_name: str) -> list[Any]:
         """Get all reports for a specific domain."""
         try:

@@ -34,8 +34,12 @@ const GraphVisualization = ({ report, onAddSource, onAddCompetitor }) => {
     const addedCompetitors = new Set();
 
     const addNode = (id, label, type, val) => {
-      if (!nodes.find(n => n.id === id)) {
+      const existingNode = nodes.find(n => n.id === id);
+      if (!existingNode) {
         nodes.push({ id, label, type, val });
+      } else if (type === 'source' || type === 'competitor') {
+        // Increase the size of the node if it's referenced again
+        existingNode.val += 2;
       }
       return id;
     };
@@ -227,9 +231,12 @@ const GraphVisualization = ({ report, onAddSource, onAddCompetitor }) => {
             const fontSize = node.type === 'brand' ? 14/globalScale : 12/globalScale;
             ctx.font = `${fontSize}px Sans-Serif`;
             
+            // Limit max visual node size so it doesn't get ridiculously huge
+            const visualVal = Math.min(node.val, 25);
+            
             // Draw circle
             ctx.beginPath();
-            ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
+            ctx.arc(node.x, node.y, visualVal, 0, 2 * Math.PI, false);
             
             if (node.type === 'brand') ctx.fillStyle = '#ff6b6b';
             else if (node.type === 'prompt-yes') ctx.fillStyle = '#4dabf7';
@@ -251,10 +258,10 @@ const GraphVisualization = ({ report, onAddSource, onAddCompetitor }) => {
               const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); 
               
               ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-              ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y + node.val + 2, bckgDimensions[0], bckgDimensions[1]);
+              ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y + visualVal + 2, bckgDimensions[0], bckgDimensions[1]);
               
               ctx.fillStyle = '#343a40';
-              ctx.fillText(label, node.x, node.y + node.val + 2 + bckgDimensions[1]/2);
+              ctx.fillText(label, node.x, node.y + visualVal + 2 + bckgDimensions[1]/2);
             }
           }}
         />

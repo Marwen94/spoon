@@ -84,6 +84,28 @@ function App() {
     }
   };
 
+  const handleClearContext = async () => {
+    if (!selectedDomain) return;
+    if (!window.confirm("Are you sure you want to clear all added sources and competitors from this domain's context?")) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/domains/${selectedDomain.name}/context`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to clear context');
+
+      // Update local state to empty context
+      if (selectedDomain) {
+        const updatedDomain = { ...selectedDomain, context: { sources: [], competitors: [] } };
+        setSelectedDomain(updatedDomain);
+        localStorage.setItem('selectedDomain', JSON.stringify(updatedDomain));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to clear context.');
+    }
+  };
+
   // Load domains on mount
   useEffect(() => {
     const loadData = async () => {
@@ -415,15 +437,25 @@ function App() {
         </p>
         <div className="markdown-block">
           <pre><code>{md}</code></pre>
-          <button 
-            className="small-btn copy-btn"
-            onClick={() => {
-              navigator.clipboard.writeText(md);
-              alert('Markdown copied to clipboard!');
-            }}
-          >
-            Copy Markdown
-          </button>
+          <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+            <button 
+              className="small-btn copy-btn"
+              style={{ position: 'static' }}
+              onClick={() => {
+                navigator.clipboard.writeText(md);
+                alert('Markdown copied to clipboard!');
+              }}
+            >
+              Copy Markdown
+            </button>
+            <button 
+              className="small-btn copy-btn"
+              style={{ position: 'static', backgroundColor: 'rgba(224, 49, 49, 0.1)', borderColor: 'rgba(224, 49, 49, 0.3)', color: '#ff8787' }}
+              onClick={handleClearContext}
+            >
+              Clear Context
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -24,7 +24,7 @@ const ExposureReport = ({
       <div className="report-header-actions">
         <div className="header-left">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2>Exposure Report</h2>
+            <h2>Exposure Analysis</h2>
             <button 
               className="small-btn" 
               style={{ padding: '2px 6px', fontSize: '0.8rem', background: 'transparent', color: '#868e96', border: '1px solid #ced4da' }}
