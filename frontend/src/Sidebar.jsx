@@ -79,7 +79,7 @@ const Sidebar = ({
             className="small-input"
           />
           <button type="submit" className="small-btn" disabled={!newDomain}>
-            Add
+            Add domain
           </button>
         </form>
       </div>

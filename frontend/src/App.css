@@ -1,5 +1,24 @@
 /* App.css - Updated for Sidebar Layout */
 
+:root {
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-800: #1e40af;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-900: #0f172a;
+}
+
 #root {
   width: 100vw;
   height: 100vh;
@@ -19,8 +38,8 @@
 /* Sidebar Styles */
 .sidebar {
   width: 280px;
-  background-color: #f8f9fa;
-  border-right: 1px solid #e9ecef;
+  background-color: var(--slate-50);
+  border-right: 1px solid var(--blue-100);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -28,7 +47,8 @@
 
 .sidebar-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--blue-100);
+  background: linear-gradient(180deg, var(--blue-50) 0%, var(--slate-50) 100%);
 }
 
 .sidebar-header h2 {
@@ -40,13 +60,13 @@
 
 .sidebar-section {
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--blue-100);
 }
 
 .sidebar-section h3 {
   font-size: 0.85rem;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--blue-700);
   margin: 0 0 1rem 0;
   letter-spacing: 0.05em;
 }
@@ -67,19 +87,19 @@
   transition: all 0.2s ease;
   font-size: 0.95rem;
   font-weight: 500;
-  color: #495057;
+  color: var(--slate-700);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .domain-item:hover {
-  background-color: #e9ecef;
+  background-color: var(--blue-50);
 }
 
 .domain-item.active {
-  background-color: #dee2e6; /* changed from dark #333 to lighter gray for parent */
-  color: #333;
+  background-color: var(--blue-100);
+  color: var(--blue-800);
   font-weight: 600;
 }
 
@@ -90,7 +110,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  border-left: 2px solid #dee2e6;
+  border-left: 2px solid var(--blue-200);
   margin-left: 1rem;
 }
 
@@ -99,16 +119,16 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.85rem;
-  color: #495057;
+  color: var(--slate-700);
   transition: all 0.2s ease;
 }
 
 .sub-menu-item:hover {
-  background-color: #e9ecef;
+  background-color: var(--blue-50);
 }
 
 .sub-menu-item.active {
-  background-color: #333;
+  background-color: var(--blue-600);
   color: white;
   font-weight: 500;
 }
@@ -123,7 +143,7 @@
 .delete-domain-btn {
   background: none;
   border: none;
-  color: #adb5bd;
+  color: var(--slate-400);
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0 0.2rem;
@@ -140,7 +160,7 @@
 }
 
 .domain-item.active .delete-domain-btn {
-  color: #adb5bd; /* changed from white-ish to normal icon color */
+  color: var(--blue-500);
   opacity: 1;
 }
 
@@ -150,7 +170,7 @@
 }
 
 .empty-text {
-  color: #adb5bd;
+  color: var(--slate-400);
   font-size: 0.9rem;
   font-style: italic;
   padding: 0.5rem 0;
@@ -164,30 +184,32 @@
 
 .small-input {
   padding: 0.6rem 0.8rem;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--slate-200);
   border-radius: 4px;
   font-size: 0.9rem;
   outline: none;
 }
 
 .small-input:focus {
-  border-color: #333;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .small-btn {
   padding: 0.6rem;
-  background-color: #e9ecef;
-  color: #333;
+  background-color: var(--blue-600);
+  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .small-btn:hover:not(:disabled) {
-  background-color: #dee2e6;
+  background-color: var(--blue-700);
+  transform: translateY(-1px);
 }
 
 .small-btn:disabled {
@@ -210,11 +232,11 @@
   justify-content: center;
   height: 100%;
   text-align: center;
-  color: #6c757d;
+  color: var(--slate-500);
 }
 
 .welcome-state h1 {
-  color: #333;
+  color: var(--blue-800);
   margin-bottom: 1rem;
 }
 
@@ -244,9 +266,10 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-  background: #f8f9fa;
+  background: linear-gradient(180deg, var(--blue-50) 0%, #ffffff 100%);
   padding: 1.5rem;
   border-radius: 8px;
+  border: 1px solid var(--blue-100);
 }
 
 .settings-group {
@@ -258,20 +281,20 @@
 
 .settings-label {
   font-weight: 500;
-  color: #495057;
+  color: var(--slate-700);
 }
 
 .number-input.small {
   width: 70px;
   padding: 0.5rem;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--slate-200);
   border-radius: 4px;
   text-align: center;
 }
 
 .submit-btn {
   padding: 0.75rem 1.5rem;
-  background: #333;
+  background: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-700) 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -281,11 +304,11 @@
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #000;
+  background: linear-gradient(135deg, var(--blue-700) 0%, var(--blue-800) 100%);
 }
 
 .submit-btn:disabled {
-  background: #ced4da;
+  background: var(--slate-200);
   cursor: not-allowed;
 }
 
@@ -295,11 +318,11 @@
 }
 
 .summary-card {
-  background: #f8f9fa;
+  background: linear-gradient(180deg, var(--blue-50) 0%, #ffffff 100%);
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 2rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
 }
 
 .score {
@@ -311,7 +334,7 @@
 .score .label {
   font-size: 0.85rem;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--blue-700);
   letter-spacing: 0.05em;
   font-weight: 600;
 }
@@ -323,7 +346,7 @@
 }
 
 .summary-text {
-  color: #495057;
+  color: var(--slate-700);
   line-height: 1.6;
 }
 
@@ -336,7 +359,7 @@
 
 .stat {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
   padding: 1.5rem;
   border-radius: 8px;
   text-align: center;
@@ -347,7 +370,7 @@
   display: block;
   font-size: 0.8rem;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--blue-700);
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
@@ -355,7 +378,7 @@
 .stat .value {
   font-size: 2rem;
   font-weight: 700;
-  color: #333;
+  color: var(--blue-800);
 }
 
 .examples h3 {
@@ -374,7 +397,7 @@
 
 .prompt-item {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   overflow: hidden;
@@ -388,7 +411,7 @@
 }
 
 .prompt-header:hover {
-  background-color: #f8f9fa;
+  background-color: var(--blue-50);
 }
 
 .prompt-title {
@@ -400,7 +423,7 @@
 }
 
 .expand-icon {
-  color: #adb5bd;
+  color: var(--blue-400, #60a5fa);
   font-size: 0.8rem;
   margin-top: 0.2rem;
   transition: transform 0.2s;
@@ -408,7 +431,7 @@
 
 .prompt-content {
   padding: 0 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--blue-100);
 }
 
 .prompt-detail-section {
@@ -418,13 +441,13 @@
 .sources-list {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--blue-100);
 }
 
 .sources-list h4 {
   font-size: 0.85rem;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--blue-700);
   margin: 0 0 0.5rem 0;
 }
 
@@ -445,7 +468,7 @@
 
 .sources-list li::before {
   content: "•";
-  color: #adb5bd;
+  color: var(--blue-400, #60a5fa);
 }
 
 .sources-list a {
@@ -469,8 +492,8 @@
 
 /* Brand Identity Styles */
 .brand-identity-section {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: linear-gradient(180deg, var(--blue-50) 0%, #ffffff 100%);
+  border: 1px solid var(--blue-100);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -486,7 +509,7 @@
 .identity-header h2 {
   margin: 0;
   font-size: 1.2rem;
-  color: #333;
+  color: var(--blue-800);
 }
 
 .identity-actions {
@@ -496,29 +519,30 @@
 
 .small-btn.cancel {
   background: transparent;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--blue-200);
+  color: var(--blue-700);
 }
 
 .small-btn.cancel:hover {
-  background: #e9ecef;
+  background: var(--blue-50);
 }
 
 .small-btn.save {
-  background: #333;
+  background: var(--blue-600);
   color: white;
 }
 
 .small-btn.save:hover {
-  background: #000;
+  background: var(--blue-700);
 }
 
 .identity-viewer {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
   padding: 1.5rem;
   border-radius: 6px;
   font-size: 0.95rem;
-  color: #495057;
+  color: var(--slate-700);
   margin: 0;
 }
 
@@ -535,7 +559,7 @@
 }
 
 .identity-field strong {
-  color: #333;
+  color: var(--blue-800);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -560,13 +584,13 @@
 }
 
 .chip {
-  background-color: #f1f3f5;
-  color: #495057;
+  background-color: var(--blue-50);
+  color: var(--blue-800);
   padding: 0.35rem 0.75rem;
   border-radius: 16px;
   font-size: 0.85rem;
   font-weight: 500;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
 }
 
 .chips-container.small .chip {
@@ -622,7 +646,7 @@
 
 .competitors-mentioned h4 {
   font-size: 0.8rem;
-  color: #868e96;
+  color: var(--blue-700);
   margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -643,7 +667,7 @@
 .form-group label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #495057;
+  color: var(--slate-700);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -651,17 +675,18 @@
 .identity-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--slate-200);
   border-radius: 6px;
   font-size: 0.95rem;
-  color: #333;
+  color: var(--slate-900);
   box-sizing: border-box;
   font-family: inherit;
 }
 
 .identity-input:focus {
   outline: none;
-  border-color: #333;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .fade-in {
@@ -682,7 +707,7 @@
   font-size: 1.4rem;
   font-weight: 500;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: var(--blue-800);
 }
 
 .history-title {
@@ -691,7 +716,7 @@
 
 .chart-container {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
   padding: 1.5rem 1.5rem 1.5rem 0;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.02);
@@ -706,7 +731,7 @@
 
 .history-card {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
   padding: 1.25rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.02);
@@ -725,7 +750,7 @@
 }
 
 .history-card.clickable:hover {
-  border-color: #adb5bd;
+  border-color: var(--blue-300);
 }
 
 .history-header {
@@ -737,7 +762,7 @@
 
 .history-date {
   font-size: 0.85rem;
-  color: #868e96;
+  color: var(--slate-500);
 }
 
 .history-rate {
@@ -751,14 +776,14 @@
 
 .history-stats {
   font-size: 0.9rem;
-  color: #495057;
+  color: var(--slate-700);
   font-weight: 500;
   margin-bottom: 1rem;
 }
 
 .history-summary {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--slate-500);
   line-height: 1.5;
   margin: 0;
   display: -webkit-box;
@@ -776,10 +801,10 @@
 
 .view-toggle {
   display: flex;
-  background: #f1f3f5;
+  background: var(--blue-50);
   padding: 0.25rem;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
 }
 
 .toggle-btn {
@@ -788,20 +813,20 @@
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #868e96;
+  color: var(--slate-500);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .toggle-btn:hover {
-  color: #495057;
+  color: var(--blue-700);
 }
 
 .toggle-btn.active {
   background: #fff;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  color: var(--blue-800);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.15);
 }
 
 .filter-dropdown {
@@ -811,17 +836,17 @@
 .filter-select {
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--blue-100);
   background-color: #fff;
   font-size: 0.85rem;
-  color: #495057;
+  color: var(--slate-700);
   cursor: pointer;
   outline: none;
   transition: border-color 0.2s;
 }
 
 .filter-select:focus {
-  border-color: #adb5bd;
+  border-color: var(--blue-400, #60a5fa);
 }
 
 .graph-container {
